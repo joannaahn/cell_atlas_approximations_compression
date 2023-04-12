@@ -17,7 +17,7 @@ import scanpy as sc
 
 from utils import (
     root_repo_folder,
-    get_output_subfolder,
+    output_folder,
     get_tissue_data_dict,
     subannotate,
     fix_annotations,
@@ -32,7 +32,7 @@ dataset_name = 'SebePedros'
 atlas_data_folder = root_repo_folder / 'data' / 'full_atlases' / species / 'Single_cell_datasets' / 'Amphimedon'
 # There cannot be an annotation yet since the transcriptome was assembled here
 #anno_fn = root_repo_folder / 'data' / 'gene_annotations' / 'c_elegans.PRJNA13758.WS287.annotations.gff3.gz'
-fn_out = get_output_subfolder(root_repo_folder) / f'{species}.h5'
+fn_out = output_folder / f'{species}.h5'
 
 # TODO
 rename_dict = {

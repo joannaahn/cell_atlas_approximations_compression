@@ -12,11 +12,7 @@ import scanpy as sc
 
 
 root_repo_folder = pathlib.Path(__file__).parent.parent
-
-
-def get_output_subfolder():
-    """Get the output folder of the compressions"""
-    return root_repo_folder / 'data' / 'atlas_approximations'
+output_folder = root_repo_folder / 'data' / 'atlas_approximations'
 
 
 def get_tissue_data_dict(species, atlas_folder, rename_dict=None):

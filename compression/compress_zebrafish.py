@@ -17,7 +17,7 @@ import scanpy as sc
 
 from utils import (
     root_repo_folder,
-    get_output_subfolder,
+    output_folder,
     get_tissue_data_dict,
     subannotate,
     fix_annotations,
@@ -30,7 +30,7 @@ from utils import (
 species = 'd_rerio'
 atlas_data_folder = root_repo_folder / 'data' / 'full_atlases' / 'danio_rerio'
 anno_fn = root_repo_folder / 'data' / 'gene_annotations' / 'Danio_rerio.GRCz11.109.gtf.gz'
-fn_out = get_output_subfolder(root_repo_folder) / f'{species}.h5'
+fn_out = output_folder / f'{species}.h5'
 
 
 rename_dict = {

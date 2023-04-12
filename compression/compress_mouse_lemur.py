@@ -17,7 +17,7 @@ import scanpy as sc
 
 from utils import (
     root_repo_folder,
-    get_output_subfolder,
+    output_folder,
     get_tissue_data_dict,
     subannotate,
     fix_annotations,
@@ -30,7 +30,7 @@ from utils import (
 species = "m_myoxinous"
 tmc_data_folder = root_repo_folder / 'data' / 'full_atlases' / 'tabula_microcebus'
 anno_fn = root_repo_folder / 'data' / 'gene_annotations' / 'Microcebus_murinus.Mmur_3.0.109.gtf.gz'
-fn_out = get_output_subfolder(root_repo_folder) / 'tabula_microcebus.h5'
+fn_out = output_folder / 'tabula_microcebus.h5'
 
 
 rename_dict = {

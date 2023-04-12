@@ -24,7 +24,7 @@ import scanpy as sc
 
 from utils import (
     root_repo_folder,
-    get_output_subfolder,
+    output_folder,
     get_tissue_data_dict,
     subannotate,
     fix_annotations,
@@ -37,7 +37,7 @@ from utils import (
 species = "m_musculus"
 tms_data_folder = root_repo_folder / 'data' / 'full_atlases' / 'tabula_muris_senis'
 anno_fn = root_repo_folder / 'data' / 'gene_annotations' / 'mm10.ncbiRefSeq.gtf.gz'
-fn_out = get_output_subfolder(root_repo_folder) / 'tabula_muris_senis.h5'
+fn_out = output_folder / 'tabula_muris_senis.h5'
 
 
 rename_dict = {
