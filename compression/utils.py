@@ -26,7 +26,7 @@ def get_tissue_data_dict(species, atlas_folder, rename_dict=None):
         if species == 'mouse':
             tissue = filename.split('-')[-1].split('.')[0]
         elif species == 'human':
-            tissue = tissue[3:]
+            tissue = filename[3:-5]
         elif species == 'lemur':
             tissue = tissue[:-len('_FIRM_hvg')].replace('_', ' ').title()
         elif species in ('c_elegans', 'd_rerio', 's_lacustris',
