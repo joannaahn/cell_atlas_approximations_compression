@@ -1,6 +1,6 @@
-# Cell Atlas Approximations - Approximation
-<img src="https://raw.githubusercontent.com/fabilab/cell_atlas_approximations/main/figures/figure_Approximation.png" width="300" height="300">
+<img src="https://raw.githubusercontent.com/fabilab/cell_atlas_approximations/main/figures/figure_Approximation.png" width="200" height="200">
 
+# Cell Atlas Approximations - Compression
 Cell atlases such as Tabula Muris and Tabula Sapiens are multi-organ single cell omics data sets describing entire organisms. A cell atlas approximation is a lossy and lightweight compression of a cell atlas that can be streamed via the internet.
 
 This project enables biologists, doctors, and data scientist to quickly find answers for questions such as:
