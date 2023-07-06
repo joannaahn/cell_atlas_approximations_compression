@@ -24,7 +24,7 @@ def get_tissue_data_dict(species, atlas_folder, rename_dict=None):
     if species == "m_fascicularis":
         fns = [x for x in fns if x.startswith('Matrix_')]
     else:
-        fns = [x for x in fns if '.h5ad' in x]
+        fns = [x for x in fns if x.endswith('.h5ad')]
  
     for filename in fns:
         if species == 'mouse':
@@ -66,7 +66,8 @@ def get_tissue_data_dict(species, atlas_folder, rename_dict=None):
     return result
 
 
-def subannotate(adata, species, annotation, verbose=True):
+def subannotate(adata, species, annotation, verbose=True,
+                trash_unknown=True):
     '''This function subannotates a coarse annotation from an atlasi.
 
     This is ad-hoc, but that's ok for now. Examples are 'lymphocyte', which is
@@ -83,8 +84,24 @@ def subannotate(adata, species, annotation, verbose=True):
             'dendritic': ['FCER1A', 'IL1R2', 'CD86', 'HLA-DPB1', 'HLA-DRB1'],
             'neutrophil': ['S100A8', 'S100A7'],
         },
+        ('human', 'leucocyte'): {  # NOTE: yes, it's a typo
+            'T': ['CD3D', 'CD3G', 'CD3E', 'TRAC', 'IL7R'],
+            'B': ['MS4A1', 'CD19', 'CD79A'],
+            'NK': ['PFN1', 'TMSB4XP8'],
+            'macrophage': ['MRC1', 'MARCO', 'CD163', 'C1QA', 'C1QB', 'CST3'],
+            'dendritic': ['FCER1A', 'IL1R2', 'CD86', 'HLA-DPB1', 'HLA-DRB1'],
+            'neutrophil': ['S100A8', 'S100A7'],
+            '': ['AL512646.1', 'MAPK10', 'ZBTB20', 'TMSB4X'],
+        },
+        ('human', 'mesenchymal stem cell'): {
+            'pericyte': ['PDGFRB', 'TIMP2'],
+            'fibroblast': ['COL1A1', 'COL1A2', 'COL6A2', 'COL3A1', 'COL6A1', 'GPC3',
+                           'HEBP2', 'SVEP1', 'SCARA5', 'C1S', 'C1R', 'C3', 'PODN'],
+            'smooth muscle': ['MYH7', 'ACTA2', 'MYL9'],
+            '': ['RPL11', 'RPS6', 'PRDX6', 'IFITM1', 'SPARCL1', 'APOE'],
+        },
         ('human', 'endothelial'): {
-            'arterial': ['GJA5', 'BMX', 'SEMA3G', 'VIM'],
+            'arterial': ['GJA5', 'BMX', 'SEMA3G', 'VIM', 'FN1', 'SRGN'],
             'venous': ['VWF', 'MMRN2', 'CLEC14A', 'ACKR1'],
             'lymphatic': ['LYVE1', 'PROX1', 'THY1', 'MMRN1', 'TFF3', 'TFPI'],
             'capillary': ['SLC9A3R2', 'PLPP1', 'PECAM1', 'IGKC', 'CALD1', 'CRHBP', 'KDR'],
@@ -92,7 +109,7 @@ def subannotate(adata, species, annotation, verbose=True):
             '': [
                 'JUN', 'JUND', 'SQSTM1', 'SELENOH', 'FOS', 'ACP1', 'EPB41L2',
                 'MALAT1', 'CAP1', 'FABP5P7', 'XIST', 'TGFBR2', 'SPARCL1',
-                'FCN3', 'F8'],
+                'FCN3', 'F8', 'BTNL9', 'FABP4', 'CFD', 'NEAT1'],
             'acinar': ['PRSS2', 'ENPP2', 'GALNT15', 'APOD', 'CLPS'],
         },
         ('mouse', 'endothelial cell'): {
@@ -206,8 +223,12 @@ def subannotate(adata, species, annotation, verbose=True):
                     found = True
                     break
             else:
-                import ipdb; ipdb.set_trace()
-                raise ValueError('Marker not found:', gene)
+                # FIXME: trash clusters with unknown markers for now
+                if not trash_unknown:
+                    import ipdb; ipdb.set_trace()
+                    raise ValueError('Marker not found:', gene)
+                else:
+                    subannos[cluster] = ''
         if not found:
             subannos[cluster] = ''
 
@@ -384,11 +405,11 @@ def store_compressed_atlas(
             features = group['features'].tolist()
 
     with h5py.File(fn_out, 'a') as h5_data:
-        ge = h5_data.create_group(measurement_type)
-        ge.create_dataset('features', data=np.array(features).astype('S'))
+        me = h5_data.create_group(measurement_type)
+        me.create_dataset('features', data=np.array(features).astype('S'))
 
         if feature_annos is not None:
-            group = ge.create_group('feature_annotations')
+            group = me.create_group('feature_annotations')
             group.create_dataset(
                     'gene_name', data=feature_annos.index.values.astype('S'))
             group.create_dataset(
@@ -406,30 +427,30 @@ def store_compressed_atlas(
             group.create_dataset(
                     'strand', data=feature_annos['strand'].values, dtype='i2')
 
-        ge.create_dataset('tissues', data=np.array(tissues).astype('S'))
-        supergroup = ge.create_group('by_tissue')
+        me.create_dataset('tissues', data=np.array(tissues).astype('S'))
+        supergroup = me.create_group('by_tissue')
         for tissue in tissues:
             tgroup = supergroup.create_group(tissue)
             #for label in ['celltype', 'celltype_dataset_timepoint']:
             for label in ['celltype']:
-                avg_ge = compressed_atlas[tissue][label]['avg']
-                ncells_ge = compressed_atlas[tissue][label]['ncells']
+                avg = compressed_atlas[tissue][label]['avg']
+                ncells = compressed_atlas[tissue][label]['ncells']
 
                 group = tgroup.create_group(label)
                 group.create_dataset(
-                        'index', data=avg_ge.columns.values.astype('S'))
+                        'index', data=avg.columns.values.astype('S'))
                 group.create_dataset(
-                        'average', data=avg_ge.T.values, dtype='f4')
+                        'average', data=avg.T.values, dtype='f4')
                 group.create_dataset(
-                        'cell_count', data=ncells_ge.values, dtype='i8')
+                        'cell_count', data=ncells.values, dtype='i8')
 
                 if measurement_type == 'gene_expression':
-                    frac_ge = compressed_atlas[tissue][label]['frac']
+                    frac = compressed_atlas[tissue][label]['frac']
                     group.create_dataset(
-                            'fraction', data=frac_ge.T.values, dtype='f4')
+                            'fraction', data=frac.T.values, dtype='f4')
 
 
-        ct_group = ge.create_group('celltypes')
+        ct_group = me.create_group('celltypes')
         supertypes = np.array([x[0] for x in celltype_order])
         ct_group.create_dataset(
                 'supertypes',

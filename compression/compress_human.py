@@ -35,7 +35,7 @@ atlas_data_folderd = {
 atlas_fn_atac = atlas_data_folderd['ATAC'] / 'Ren_lab_cell_by_cCRE_matrix.h5ad'
 atlas_fn_atac_meta = atlas_data_folderd['ATAC'] / 'Ren_lab_Cell_metadata.tsv.gz'
 anno_fn = root_repo_folder / 'data' / 'gene_annotations' / 'Homo_sapiens.GRCh38.109.gtf.gz'
-fn_out = output_folder / 'tabula_sapiens.h5'
+fn_out = output_folder / 'h_sapiens.h5'
 
 
 rename_dict = {
@@ -162,6 +162,32 @@ rename_dict = {
         'epithelial cell': 'epithelial',
         'tongue muscle cell': 'striated muscle',
         'schwann cell': 'schwann',
+        'bladder urothelial cell': 'urothelial',
+        'cd8-positive, alpha-beta cytokine secreting effector t cell': 'T',
+        'cd4-positive, alpha-beta memory t cell': 'T',
+        'type i nk t cell': 'NK',
+        'naive thymus-derived cd4-positive, alpha-beta t cell': 'T',
+        'cd141-positive myeloid dendritic cell': 'dendritic',
+        'conjunctival epithelial cell': 'conjunctival',
+        'corneal epithelial cell': 'corneal',
+        'eye photoreceptor cell': 'photoreceptor',
+        'corneal keratocyte': 'keratocyte',
+        'retinal blood vessel endothelial cell': 'capillary',
+        'muller cell': 'muller',
+        'lacrimal gland functional unit cell': 'acinar', # this is a bit of guesswork
+        'microglial cell': 'glial',
+        'radial glial cell': 'glial',
+        'limbal stem cell': 'limbal',
+        'limbal stromal cell': 'limbal',
+        'ocular surface cell': '', # this seems poorly defined
+        'epithelial cell of lacrimal sac': 'lacrimal',
+        'retinal pigment epithelial cell': 'retinal pigment',
+        'retinal bipolar neuron': 'neuron',
+        'erythroid lineage cell': 'erythrocyte',
+        'ciliary body': '', # this seems poorly defined
+        'retina horizontal cell': 'horizontal',
+        'retinal ganglion cell': 'ganglion',
+
         # ATAC
         'Transitional Zone Cortical Cell': 'cortical',
         'Zona Fasciculata Cortical Cell': 'cortical',
@@ -199,8 +225,8 @@ rename_dict = {
         'Oligodendrocyte': 'oligodendrocyte',
         'GABAergic Neuron 1': 'neuron',
         'GABAergic Neuron 2': 'neuron',
-        'Oligodendrocyte Precursor': 'OPC',
         'Microglia': 'glial',
+        'Oligodendrocyte Precursor': 'OPC',
         'Astrocyte 1': 'astrocyte',
         'Astrocyte 2': 'astrocyte',
         'Blood Brain Barrier Endothelial Cell': 'capillary',
@@ -254,17 +280,46 @@ rename_dict = {
         'Cardiac Pericyte 1': 'pericyte',
         'Endocardial Cell': 'endocardial',
         'Hepatocyte': 'hepatocyte',
+        'Alveolar Type 2 (AT2) Cell': 'AT2 epi',
+        'Alveolar Type 1 (AT1) Cell': 'AT1 epi',
+        'Alverolar Type 2,Immune': 'alveolar macrophage',
+        'Cilliated Cell': 'ciliated',
+        'Mammary Epithelial': 'epithelial',
+        'Mammary Luminal Epithelial Cell 1': 'luminal',
+        'Basal Epithelial (Mammary)': 'basal',
+        'Mammary Luminal Epithelial Cell 2': 'luminal',
+        'Eccrine Epidermal (Skin)': 'epidermal',
+        'Peripheral Nerve Stromal': 'nerve stromal',
+        'Pancreatic Acinar Cell': 'acinar',
+        'Pancreatic Beta Cell 1': 'beta',
+        'Pancreatic Alpha Cell 1': 'alpha',
+        'Ductal Cell (Pancreatic)': 'ductal',
+        'Pancreatic Beta Cell 2': 'beta',
+        'Pancreatic Delta,Gamma cell': 'PP',  # TODO: actually not well defined
+        'Pancreatic Alpha Cell 2': 'alpha',
+        'Parietal Cell': 'parietal',
+        'Thyroid Follicular Cell': 'thyrocyte',
     },
 }
 
 
 celltype_tissue_blacklist = {
-    'Adrenal': ['Luteal Cell (Ovarian)'],
-    'Brain': ['Peripheral Nerve Stromal'],
+    'Adrenal': [
+        'Luteal Cell (Ovarian)',
+        'Smooth Muscle (Vaginal)',
+        'Vascular Smooth Muscle 2',
+        'CNS,Enteric Neuron',
+        'Smooth Muscle (General)',
+    ],
+    'Brain': [
+        'Peripheral Nerve Stromal',
+        'Smooth Muscle (Vaginal)',
+    ],
     'Colon': [
         'Mammary Luminal Epithelial Cell 2', 'Pancreatic Delta,Gamma cell',
         'Ductal Cell (Pancreatic)',
         'Chief Cell', # stomach
+        'Luteal Cell (Ovarian)',
     ],
     'Esophagus': [
         'Airway Goblet Cell',
@@ -273,12 +328,17 @@ celltype_tissue_blacklist = {
         'Basal Epithelial (Mammary)',
         'Thyroid Follicular Cell',
         'Pancreatic Acinar Cell',
+        'Luteal Cell (Ovarian)',
+    ],
+    'Eye': [
+        'endothelial cell', # they are low-quality cells only
     ],
     'Fat': [
         'Alverolar Type 2,Immune',
         'Peripheral Nerve Stromal',
         'Pancreatic Acinar Cell',
         'Ductal Cell (Pancreatic)',
+        'Chief Cell', # stomach
     ],
     'Heart': [
         'Peripheral Nerve Stromal',
@@ -288,10 +348,53 @@ celltype_tissue_blacklist = {
         'Alveolar Type 2 (AT2) Cell',
         'Thyroid Follicular Cell',
         'Alveolar Type 1 (AT1) Cell',
+        'Luteal Cell (Ovarian)',
     ],
     'Liver': [
         'Ductal Cell (Pancreatic)',
         'Mammary Luminal Epithelial Cell 2',
+    ],
+    'Lung': [
+        'Chief Cell', # stomach
+        'Luteal Cell (Ovarian)',
+        'Mammary Luminal Epithelial Cell 2',
+        'Ductal Cell (Pancreatic)',
+        'Small Intestinal Enterocyte',
+    ],
+    'Mammary': [
+        'Ductal Cell (Pancreatic)'  
+    ],
+    'Muscle': [
+        'Peripheral Nerve Stromal',
+        'Ductal Cell (Pancreatic)',
+        'Luteal Cell (Ovarian)',
+    ],
+    'Nerve': [
+        'Ductal Cell (Pancreatic)',
+        'Luteal Cell (Ovarian)',
+    ],
+    'Ovary': [
+        'Ductal Cell (Pancreatic)',
+    ],
+    'Pancreas': [
+        'Luteal Cell (Ovarian)',
+    ],
+    'Skin': [
+        'Luteal Cell (Ovarian)',
+        'Peripheral Nerve Stromal',
+    ],
+    'Stomach': [
+        'Pancreatic Delta,Gamma cell',  # TODO: actually not well defined
+        'Pancreatic Acinar Cell',
+    ],
+    'Thyroid': [
+        'Pancreatic Delta,Gamma cell',  # TODO: actually not well defined
+    ],
+    'Uterus': [
+        'Luteal Cell (Ovarian)',
+    ],
+    'Vagina': [
+        'Luteal Cell (Ovarian)',
     ],
 }
 
@@ -299,6 +402,8 @@ celltype_tissue_blacklist = {
 coarse_cell_types = [
     'endothelial',
     'immune cell',
+    'leucocyte',  # yes, a typo
+    'mesenchymal stem cell',
 ]
 
 
@@ -313,6 +418,7 @@ celltype_order = [
         'myeloid',
         'monocyte',
         'macrophage',
+        'alveolar macrophage',
         'dendritic',
         'erythroid',
         'erythrocyte',
@@ -322,6 +428,7 @@ celltype_order = [
         'NK',
         'plasmacytoid',
         'glial',
+        'platelet',
     ]),
     ('epithelial', [
         'epithelial',
@@ -348,6 +455,12 @@ celltype_order = [
         'myoepithelial',
         'chief',
         'epidermal',
+        'luminal',
+        'parietal',
+        'thyrocyte',
+        'urothelial',
+        'conjunctival',
+        'corneal',
     ]),
     ('endothelial', [
         'arterial',
@@ -369,6 +482,8 @@ celltype_order = [
         'pericyte',
         'mesothelial',
         'satellite',
+        'keratocyte',
+        'nerve stromal', # this one is actually not well defined...
     ]),
     ('other', [
         'enteroendocrine',
@@ -387,6 +502,13 @@ celltype_order = [
         'oligodendrocyte',
         'OPC',
         'astrocyte',
+        'photoreceptor',
+        'muller',
+        'limbal',
+        'lacrimal',
+        'retinal pigment',
+        'horizontal',
+        'ganglion',
     ]),
     ('unknown', [
         'unknown',
@@ -400,11 +522,11 @@ if __name__ == '__main__':
     if os.path.isfile(fn_out):
         os.remove(fn_out)
 
-    if False:
+    if True:
         print('RNA')
         compressed_atlas = {}
         tissue_sources = get_tissue_data_dict(
-                'human', atlas_data_folder, rename_dict)
+                'human', atlas_data_folderd['RNA'], rename_dict)
         tissues = list(tissue_sources.keys())
         for it, (tissue, full_atlas_fn) in enumerate(tissue_sources.items()):
             print(tissue)
@@ -421,10 +543,19 @@ if __name__ == '__main__':
                 key_added='coverage',
             )
 
+            # Double check the whitelisted cell types!!
+            if False:
+                a = adata_tissue.obs['cell_ontology_class'].value_counts()
+                for ctn, ctnu in a.items():
+                    print(ctn, ctnu)
+                print()
+                continue
+
             # Fix cell type annotations
             adata_tissue.obs['cellType'] = fix_annotations(
                 adata_tissue, 'cell_ontology_class', 'human', tissue,
                 rename_dict, coarse_cell_types,
+                blacklist=celltype_tissue_blacklist,
             )
 
             # Correction might declare some cells as untyped/low quality
@@ -432,6 +563,14 @@ if __name__ == '__main__':
             if (adata_tissue.obs['cellType'] == '').sum() > 0:
                 idx = adata_tissue.obs['cellType'] != ''
                 adata_tissue = adata_tissue[idx]
+
+            # Double check the whitelisted cell types!!
+            if False:
+                a = adata_tissue.obs['cellType'].value_counts()
+                for ctn, ctnu in a.items():
+                    print(ctn, ctnu)
+                print()
+                continue
 
             celltypes = get_celltype_order(
                 adata_tissue.obs['cellType'].value_counts().index,
@@ -460,43 +599,6 @@ if __name__ == '__main__':
                 frac_ge[celltype] = np.asarray((Xidx > 0).mean(axis=0))[0]
                 ncells_ge[celltype] = idx.sum()
 
-            print('Add data to celltype-timepoint group')
-            # NOTE: see supplementary table 1 of the Science paper
-            adata_tissue.obs['age'] = adata_tissue.obs['Life stage']
-            ages = adata_tissue.obs['age'].value_counts().index.tolist()
-            ages.sort()
-            columns_age = []
-            for ct in celltypes:
-                for age in ages:
-                    columns_age.append('_'.join([ct, 'TS', str(age)]))
-
-            # Averages
-            genes = adata_tissue.var_names
-            avg_ge_tp = pd.DataFrame(
-                    np.zeros((len(genes), len(celltypes) * len(ages)), np.float32),
-                    index=genes,
-                    columns=columns_age,
-                    )
-            frac_ge_tp = pd.DataFrame(
-                    np.zeros((len(genes), len(celltypes) * len(ages)), np.float32),
-                    index=genes,
-                    columns=columns_age,
-                    )
-            ncells_ge_tp = pd.Series(
-                    np.zeros(len(columns_age), np.int64), index=columns_age,
-                    )
-            for celltype in celltypes:
-                adata_ct = adata_tissue[adata_tissue.obs['cellType'] == celltype]
-                for age in ages:
-                    idx_age = (adata_ct.obs['age'] == age).values.nonzero()[0]
-                    if len(idx_age) == 0:
-                        continue
-                    Xct_age = adata_ct.X[idx_age]
-                    label = '_'.join([celltype, 'TS', str(age)])
-                    avg_ge_tp[label] = np.asarray(Xct_age.mean(axis=0))[0]
-                    frac_ge_tp[label] = np.asarray((Xct_age > 0).mean(axis=0))[0]
-                    ncells_ge_tp[label] = len(idx_age)
-
             compressed_atlas[tissue] = {
                 'features': genes,
                 'celltype': {
@@ -504,12 +606,53 @@ if __name__ == '__main__':
                     'frac': frac_ge,
                     'ncells': ncells_ge,
                 },
-                'celltype_dataset_timepoint': {
-                    'avg': avg_ge_tp,
-                    'frac': frac_ge_tp,
-                    'ncells': ncells_ge_tp,
-                },
             }
+
+            if False:
+                print('Add data to celltype-timepoint group')
+                # NOTE: see supplementary table 1 of the Science paper
+                adata_tissue.obs['age'] = adata_tissue.obs['donor'].map({
+                    'TSP7': 69, 'TSP14': 59, 'TSP4': 38,
+                })
+                ages = adata_tissue.obs['age'].value_counts().index.tolist()
+                ages.sort()
+                columns_age = []
+                for ct in celltypes:
+                    for age in ages:
+                        columns_age.append('_'.join([ct, 'TS', str(age)]))
+
+                # Averages
+                genes = adata_tissue.var_names
+                avg_ge_tp = pd.DataFrame(
+                        np.zeros((len(genes), len(celltypes) * len(ages)), np.float32),
+                        index=genes,
+                        columns=columns_age,
+                        )
+                frac_ge_tp = pd.DataFrame(
+                        np.zeros((len(genes), len(celltypes) * len(ages)), np.float32),
+                        index=genes,
+                        columns=columns_age,
+                        )
+                ncells_ge_tp = pd.Series(
+                        np.zeros(len(columns_age), np.int64), index=columns_age,
+                        )
+                for celltype in celltypes:
+                    adata_ct = adata_tissue[adata_tissue.obs['cellType'] == celltype]
+                    for age in ages:
+                        idx_age = (adata_ct.obs['age'] == age).values.nonzero()[0]
+                        if len(idx_age) == 0:
+                            continue
+                        Xct_age = adata_ct.X[idx_age]
+                        label = '_'.join([celltype, 'TS', str(age)])
+                        avg_ge_tp[label] = np.asarray(Xct_age.mean(axis=0))[0]
+                        frac_ge_tp[label] = np.asarray((Xct_age > 0).mean(axis=0))[0]
+                        ncells_ge_tp[label] = len(idx_age)
+
+                compressed_atlas[tissue]['celltype_dataset_timepoint'] = {
+                        'avg': avg_ge_tp,
+                        'frac': frac_ge_tp,
+                        'ncells': ncells_ge_tp,
+                }
 
         print('Consolidate gene list across tissues')
         needs_union = False
@@ -529,7 +672,7 @@ if __name__ == '__main__':
         print('Add gene annotations')
         gene_annos = collect_gene_annotations(anno_fn, genes)
 
-        print('Store compressed atlas to file')
+        print('Store compressed atlas to file (RNA)')
         store_compressed_atlas(
                 fn_out,
                 compressed_atlas,
@@ -562,11 +705,17 @@ if __name__ == '__main__':
         tissues = np.sort(meta['tissue'].unique())
 
         print('Iterate over tissues')
-        # FIXME
-        for it, tissue in enumerate(tissues[7:]):
+        for it, tissue in enumerate(tissues):
             print(tissue)
 
             meta_tissue = meta.loc[meta['tissue'] == tissue]
+            
+            # Ignore cell types with too few cells... probably misannotations
+            ct_counts = meta_tissue['cell type'].value_counts()
+            cell_types_abundant = ct_counts.index[ct_counts >= 10]
+            meta_tissue = meta_tissue.loc[meta_tissue['cell type'].isin(
+                cell_types_abundant,
+            )]
 
             # Load into memory
             adata_tissue = adata_all[meta_tissue.index].to_memory()
@@ -587,6 +736,14 @@ if __name__ == '__main__':
             if (adata_tissue.obs['cellType'] == '').sum() > 0:
                 idx = adata_tissue.obs['cellType'] != ''
                 adata_tissue = adata_tissue[idx]
+
+            # Double check the whitelisted cell types!!
+            if False:
+                a = adata_tissue.obs['cellType'].value_counts()
+                for ctn, ctnu in a.items():
+                    print(ctn, ctnu)
+                print()
+                continue
 
             celltypes = get_celltype_order(
                 adata_tissue.obs['cellType'].value_counts().index,
@@ -609,53 +766,54 @@ if __name__ == '__main__':
                 avg_ca[celltype] = np.asarray(Xidx.mean(axis=0))[0]
                 ncells_ca[celltype] = idx.sum()
 
-            print('Add data to celltype-timepoint group')
-            # NOTE: see supplementary table 1 of the Science paper
-            adata_tissue.obs['age'] = adata_tissue.obs['Life stage'].copy()
-            ages = adata_tissue.obs['age'].value_counts().index.tolist()
-            ages.sort()
-            columns_age = []
-            for ct in celltypes:
-                for age in ages:
-                    columns_age.append('_'.join([ct, 'BR:ATAC', str(age)]))
-
-            # Averages
-            features = adata_tissue.var_names
-            avg_ca_tp = pd.DataFrame(
-                    np.zeros((len(features), len(celltypes) * len(ages)), np.float32),
-                    index=features,
-                    columns=columns_age,
-                    )
-            ncells_ca_tp = pd.Series(
-                    np.zeros(len(columns_age), np.int64), index=columns_age,
-                    )
-            for celltype in celltypes:
-                adata_ct = adata_tissue[adata_tissue.obs['cellType'] == celltype]
-                for age in ages:
-                    idx_age = (adata_ct.obs['age'] == age).values.nonzero()[0]
-                    if len(idx_age) == 0:
-                        continue
-                    Xct_age = adata_ct.X[idx_age]
-                    label = '_'.join([celltype, 'BR:ATAC', str(age)])
-                    avg_ca_tp[label] = np.asarray(Xct_age.mean(axis=0))[0]
-                    ncells_ca_tp[label] = len(idx_age)
-
             compressed_atlas[tissue] = {
                 'features': features,
                 'celltype': {
                     'avg': avg_ca,
                     'ncells': ncells_ca,
                 },
-                'celltype_dataset_timepoint': {
+            }
+
+            if False:
+                print('Add data to celltype-timepoint group')
+                adata_tissue.obs['age'] = adata_tissue.obs['Life stage']
+                ages = adata_tissue.obs['age'].value_counts().index.tolist()
+                ages.sort()
+                columns_age = []
+                for ct in celltypes:
+                    for age in ages:
+                        columns_age.append('_'.join([ct, 'BR:ATAC', str(age)]))
+
+                # Averages
+                features = adata_tissue.var_names
+                avg_ca_tp = pd.DataFrame(
+                        np.zeros((len(features), len(celltypes) * len(ages)), np.float32),
+                        index=features,
+                        columns=columns_age,
+                        )
+                ncells_ca_tp = pd.Series(
+                        np.zeros(len(columns_age), np.int64), index=columns_age,
+                        )
+                for celltype in celltypes:
+                    adata_ct = adata_tissue[adata_tissue.obs['cellType'] == celltype]
+                    for age in ages:
+                        idx_age = (adata_ct.obs['age'] == age).values.nonzero()[0]
+                        if len(idx_age) == 0:
+                            continue
+                        Xct_age = adata_ct.X[idx_age]
+                        label = '_'.join([celltype, 'BR:ATAC', str(age)])
+                        avg_ca_tp[label] = np.asarray(Xct_age.mean(axis=0))[0]
+                        ncells_ca_tp[label] = len(idx_age)
+
+                compressed_atlas[tissue]['celltype_dataset_timepoint'] = {
                     'avg': avg_ca_tp,
                     'ncells': ncells_ca_tp,
                 },
-            }
 
         #print('Add peak annotations')
         #feature_annos = collect_gene_annotations(anno_fn, features)
 
-        print('Store compressed atlas to file')
+        print('Store compressed atlas to file (ATAC)')
         store_compressed_atlas(
                 fn_out,
                 compressed_atlas,
