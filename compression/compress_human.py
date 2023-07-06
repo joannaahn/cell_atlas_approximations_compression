@@ -42,6 +42,8 @@ rename_dict = {
     'tissues': {
         # RNA
         'Large_Intestine': 'Colon',
+        'Small_Intestine': 'Gut',
+        'Salivary_Gland': 'Salivary',
 
         # ATAC
         'pancreas': 'Pancreas',
@@ -193,6 +195,54 @@ rename_dict = {
         'innate lymphoid cell': 'ILC',
         'regulatory t cell': 'T',
         'cd8-positive, alpha-beta memory t cell': 'T',
+        'cd1c-positive myeloid dendritic cell': 'dendritic',
+        'mature conventional dendritic cell': 'dendritic',
+        'mature nk t cell': 'NKT',
+        'luminal epithelial cell of mammary gland': 'luminal',
+        'fibroblast of breast': 'fibroblast',
+        'skeletal muscle satellite stem cell': 'satellite',
+        'endothelial cell of vascular tree': 'endothelial',
+        'tendon cell': 'tendon',
+        'fast muscle cell': 'striated muscle',
+        'slow muscle cell': 'striated muscle', # how to differentiate the two?
+        'basal cell of prostate epithelium': 'basal',
+        'luminal cell of prostate epithelium': 'luminal',
+        'club cell of prostate epithelium': 'club',
+        'hillock-club cell of prostate epithelium': 'hillock-club',
+        'cd8b-positive nk t cell': 'T',
+        'hillock cell of prostate epithelium': 'hillock-basal',
+        'nkt cell': 'NKT',
+        'acinar cell of salivary gland': 'acinar',
+        'duct epithelial cell': 'ductal',
+        'myoepithelial cell': 'myoepithelial',
+        'muscle cell': 'striated muscle',
+        'cd8-positive, alpha-beta cytotoxic t cell': 'T',
+        'naive thymus-derived cd8-positive, alpha-beta t cell': 'T',
+        'langerhans cell': 'macrophage',
+        'cell of skeletal muscle': 'striated muscle',
+        'enterocyte of epithelium of small intestine': 'enterocyte',
+        'paneth cell of epithelium of small intestine': 'paneth',
+        'small intestine goblet cell': 'goblet',
+        'transit amplifying cell of small intestine': 'transit amp',
+        'intestinal crypt stem cell of small intestine': 'crypt',
+        'dn3 thymocyte': 'thymocyte',
+        'dn1 thymic pro-t cell': 'T',
+        'naive regulatory t cell': 'T',
+        't follicular helper cell': 'T',
+        'medullary thymic epithelial cell': 'mTEC',
+        'immature natural killer cell': 'NK',
+        'dn4 thymocyte': 'thymocyte',
+        'myeloid dendritic cell': 'dendritic',
+        'ciliated cell': 'ciliated',
+        'secretory cell': 'mucous',
+        'mucus secreting cell': 'mucous',
+        'connective tissue cell': 'fibroblast', # ??
+        'tracheal goblet cell': 'goblet',
+        'serous cell of epithelium of trachea': 'serous',
+        'double-positive, alpha-beta thymocyte': 'T',
+        'myometrial cell': 'smooth muscle',  # there are also VSMs in the uterus
+        'epithelial cell of uterus': 'epithelial',
+        'ciliated epithelial cell': 'ciliated',
 
         # ATAC
         'Transitional Zone Cortical Cell': 'cortical',
@@ -346,6 +396,9 @@ celltype_tissue_blacklist = {
         'Ductal Cell (Pancreatic)',
         'Chief Cell', # stomach
     ],
+    'Gut': [
+        'duodenum glandular cell',  # unclear what they meant (https://en.wikipedia.org/wiki/Intestinal_gland)
+    ],
     'Heart': [
         'Peripheral Nerve Stromal',
         'Ductal Cell (Pancreatic)',
@@ -384,6 +437,12 @@ celltype_tissue_blacklist = {
     ],
     'Pancreas': [
         'Luteal Cell (Ovarian)',
+    ],
+    'Prostate': [
+        'sperm',
+    ],
+    'Salivary': [
+        'salivary gland cell',  # too generic: there are acinar, ductal, myoepithelial
     ],
     'Skin': [
         'Luteal Cell (Ovarian)',
@@ -432,13 +491,6 @@ subannotation_kwargs = {
             'neutrophil': ['S100A8', 'S100A7'],
             '': ['AL512646.1', 'MAPK10', 'ZBTB20', 'TMSB4X'],
         },
-        'mesenchymal stem cell': {
-            'pericyte': ['PDGFRB', 'TIMP2'],
-            'fibroblast': ['COL1A1', 'COL1A2', 'COL6A2', 'COL3A1', 'COL6A1', 'GPC3',
-                           'HEBP2', 'SVEP1', 'SCARA5', 'C1S', 'C1R', 'C3', 'PODN'],
-            'smooth muscle': ['MYH7', 'ACTA2', 'MYL9'],
-            '': ['RPL11', 'RPS6', 'PRDX6', 'IFITM1', 'SPARCL1', 'APOE'],
-        },
         'endothelial': {
             'arterial': ['GJA5', 'BMX', 'SEMA3G', 'VIM', 'FN1', 'SRGN'],
             'venous': ['VWF', 'MMRN2', 'CLEC14A', 'ACKR1'],
@@ -450,6 +502,20 @@ subannotation_kwargs = {
                 'MALAT1', 'CAP1', 'FABP5P7', 'XIST', 'TGFBR2', 'SPARCL1',
                 'FCN3', 'F8', 'BTNL9', 'FABP4', 'CFD', 'NEAT1'],
             'acinar': ['PRSS2', 'ENPP2', 'GALNT15', 'APOD', 'CLPS'],
+        },
+        'mesenchymal stem cell': {
+            'pericyte': ['PDGFRB', 'TIMP2'],
+            'fibroblast': ['COL1A1', 'COL1A2', 'COL6A2', 'COL3A1', 'COL6A1', 'GPC3',
+                           'HEBP2', 'SVEP1', 'SCARA5', 'C1S', 'C1R', 'C3', 'PODN'],
+            'smooth muscle': ['MYH7', 'ACTA2', 'MYL9'],
+            '': ['RPL11', 'RPS6', 'PRDX6', 'IFITM1', 'SPARCL1', 'APOE'],
+        },
+        'stromal cell': {
+            'pericyte': ['PDGFRB', 'TIMP2'],
+            'fibroblast': ['COL1A1', 'COL1A2', 'COL6A2', 'COL3A1', 'COL6A1', 'GPC3',
+                           'HEBP2', 'SVEP1', 'SCARA5', 'C1S', 'C1R', 'C3', 'PODN'],
+            'smooth muscle': ['MYH7', 'ACTA2', 'MYL9'],
+            '': ['RPL11', 'RPS6', 'PRDX6', 'IFITM1', 'SPARCL1', 'APOE'],
         },
     },
     'bad_prefixes': [
@@ -475,8 +541,10 @@ celltype_order = [
         'erythrocyte',
         'B',
         'plasma cell',
+        'thymocyte',
         'T',
         'NK',
+        'NKT',
         'ILC',
         'plasmacytoid',
         'glial',
@@ -492,6 +560,8 @@ celltype_order = [
         'paneth',
         'AT1 epi',
         'AT2 epi',
+        'hillock-club',
+        'hillock-basal',
         'club',
         'ciliated',
         'ductal',
@@ -514,6 +584,7 @@ celltype_order = [
         'conjunctival',
         'corneal',
         'cholangiocyte',
+        'mTEC',
     ]),
     ('endothelial', [
         'arterial',
@@ -529,6 +600,7 @@ celltype_order = [
         'alveolar fibroblast',
         'cardiomyocyte',
         'stellate',
+        'tendon',
         'striated muscle',
         'smooth muscle',
         'vascular smooth muscle',
@@ -609,6 +681,7 @@ if __name__ == '__main__':
                 adata_tissue, 'cell_ontology_class', 'human', tissue,
                 rename_dict, coarse_cell_types,
                 blacklist=celltype_tissue_blacklist,
+                subannotation_kwargs=subannotation_kwargs,
             )
 
             # Correction might declare some cells as untyped/low quality
