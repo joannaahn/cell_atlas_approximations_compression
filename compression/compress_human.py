@@ -28,14 +28,64 @@ from utils import (
 
 
 species = 'h_sapiens'
-ts_data_folder = root_repo_folder / 'data' / 'full_atlases' / 'tabula_sapiens'
+atlas_data_folderd = {
+    'RNA': root_repo_folder / 'data' / 'full_atlases' / 'RNA' / 'tabula_sapiens',
+    'ATAC': root_repo_folder / 'data' / 'full_atlases' / 'ATAC' / 'h_sapiens',
+}
+atlas_fn_atac = atlas_data_folderd['ATAC'] / 'Ren_lab_cell_by_cCRE_matrix.h5ad'
+atlas_fn_atac_meta = atlas_data_folderd['ATAC'] / 'Ren_lab_Cell_metadata.tsv.gz'
 anno_fn = root_repo_folder / 'data' / 'gene_annotations' / 'Homo_sapiens.GRCh38.109.gtf.gz'
 fn_out = output_folder / 'tabula_sapiens.h5'
 
 
 rename_dict = {
     'tissues': {
+        # RNA
         'Large_Intestine': 'Colon',
+
+        # ATAC
+        'pancreas': 'Pancreas',
+        'esophagus_mucosa': 'Esophagus',
+        'esophagus_muscularis': 'Esophagus',
+        'artery_aorta': 'Heart',
+        'muscle': 'Muscle',
+        'thyroid': 'Thyroid',
+        'colon_sigmoid': 'Colon',
+        'stomach': 'Stomach',
+        'heart_lv': 'Heart',
+        'LungMap': '',
+        'esophagus_ge_junction': 'Esophagus',
+        'mammary_tissue': 'Mammary',
+        'colon_transverse': 'Colon',
+        'Human_brain': 'Brain',
+        'adrenal_gland': 'Adrenal',
+        'small_intestine': 'Colon',
+        'ovary': 'Ovary',
+        'uterus': 'Uterus',
+        'heart_atrial_appendage': 'Heart',
+        'liver': 'Liver',
+        'nerve_tibial': 'Nerve',
+        'artery_tibial': '',
+        'lung': 'Lung',
+        'skin': 'Skin',
+        'vagina': 'Vagina',
+        'islet': 'Pancreas',
+        'skin_sun_exposed': 'Skin',
+        'adipose_omentum': 'Fat', # White fat
+        # NOTE: should we keep these??
+        'heart_ra_CARE181213': 'Heart',
+        'heart_rv_CARE181213': 'Heart',
+        'heart_lv_CARE191122': 'Heart',
+        'heart_lv_CARE190307': 'Heart',
+        'heart_rv_CARE190307': 'Heart',
+        'heart_la_CARE191122': 'Heart',
+        'heart_rv_CARE181125': 'Heart',
+        'heart_lv_CARE181125': 'Heart',
+        'heart_rv_CARE190331': 'Heart',
+        'heart_la_CARE190307': 'Heart',
+        'heart_lv_CARE190331': 'Heart',
+        'heart_la_CARE181125': 'Heart',
+        'heart_ra_CARE190307': 'Heart',
     },
     'cell_types': {
         'cd24 neutrophil': 'neutrophil',
@@ -199,141 +249,163 @@ if __name__ == '__main__':
     if os.path.isfile(fn_out):
         os.remove(fn_out)
 
-    compressed_atlas = {}
+    if False:
+        print('RNA')
+        compressed_atlas = {}
+        tissue_sources = get_tissue_data_dict(
+                'human', atlas_data_folder, rename_dict)
+        tissues = list(tissue_sources.keys())
+        for it, (tissue, full_atlas_fn) in enumerate(tissue_sources.items()):
+            print(tissue)
 
-    tissue_sources = get_tissue_data_dict(
-            'human', ts_data_folder, rename_dict)
-    tissues = list(tissue_sources.keys())
-    for it, (tissue, full_atlas_fn) in enumerate(tissue_sources.items()):
-        print(tissue)
+            adata_tissue = anndata.read(full_atlas_fn)
 
-        adata_tissue = anndata.read(full_atlas_fn)
+            # Restart from raw data and renormalize
+            adata_tissue = adata_tissue.raw.to_adata()
 
-        # Restart from raw data and renormalize
-        adata_tissue = adata_tissue.raw.to_adata()
+            # cptt throughout
+            sc.pp.normalize_total(
+                adata_tissue,
+                target_sum=1e4,
+                key_added='coverage',
+            )
 
-        # cptt throughout
-        sc.pp.normalize_total(
-            adata_tissue,
-            target_sum=1e4,
-            key_added='coverage',
+            # Fix cell type annotations
+            adata_tissue.obs['cellType'] = fix_annotations(
+                adata_tissue, 'cell_ontology_class', 'human', tissue,
+                rename_dict, coarse_cell_types,
+            )
+
+            # Correction might declare some cells as untyped/low quality
+            # they have an empty string instead of an actual annotation
+            if (adata_tissue.obs['cellType'] == '').sum() > 0:
+                idx = adata_tissue.obs['cellType'] != ''
+                adata_tissue = adata_tissue[idx]
+
+            celltypes = get_celltype_order(
+                adata_tissue.obs['cellType'].value_counts().index,
+                celltype_order,
+            )
+
+            print('Add data to celltype group')
+            genes = adata_tissue.var_names
+            avg_ge = pd.DataFrame(
+                    np.zeros((len(genes), len(celltypes)), np.float32),
+                    index=genes,
+                    columns=celltypes,
+                    )
+            frac_ge = pd.DataFrame(
+                    np.zeros((len(genes), len(celltypes)), np.float32),
+                    index=genes,
+                    columns=celltypes,
+                    )
+            ncells_ge = pd.Series(
+                    np.zeros(len(celltypes), np.int64), index=celltypes,
+                    )
+            for celltype in celltypes:
+                idx = adata_tissue.obs['cellType'] == celltype
+                Xidx = adata_tissue[idx].X
+                avg_ge[celltype] = np.asarray(Xidx.mean(axis=0))[0]
+                frac_ge[celltype] = np.asarray((Xidx > 0).mean(axis=0))[0]
+                ncells_ge[celltype] = idx.sum()
+
+            print('Add data to celltype-timepoint group')
+            # NOTE: see supplementary table 1 of the Science paper
+            adata_tissue.obs['age'] = adata_tissue.obs['donor'].map({
+                'TSP7': 69, 'TSP14': 59, 'TSP4': 38,
+            })
+            ages = adata_tissue.obs['age'].value_counts().index.tolist()
+            ages.sort()
+            columns_age = []
+            for ct in celltypes:
+                for age in ages:
+                    columns_age.append('_'.join([ct, 'TS', str(age)]))
+
+            # Averages
+            genes = adata_tissue.var_names
+            avg_ge_tp = pd.DataFrame(
+                    np.zeros((len(genes), len(celltypes) * len(ages)), np.float32),
+                    index=genes,
+                    columns=columns_age,
+                    )
+            frac_ge_tp = pd.DataFrame(
+                    np.zeros((len(genes), len(celltypes) * len(ages)), np.float32),
+                    index=genes,
+                    columns=columns_age,
+                    )
+            ncells_ge_tp = pd.Series(
+                    np.zeros(len(columns_age), np.int64), index=columns_age,
+                    )
+            for celltype in celltypes:
+                adata_ct = adata_tissue[adata_tissue.obs['cellType'] == celltype]
+                for age in ages:
+                    idx_age = (adata_ct.obs['age'] == age).values.nonzero()[0]
+                    if len(idx_age) == 0:
+                        continue
+                    Xct_age = adata_ct.X[idx_age]
+                    label = '_'.join([celltype, 'TS', str(age)])
+                    avg_ge_tp[label] = np.asarray(Xct_age.mean(axis=0))[0]
+                    frac_ge_tp[label] = np.asarray((Xct_age > 0).mean(axis=0))[0]
+                    ncells_ge_tp[label] = len(idx_age)
+
+            compressed_atlas[tissue] = {
+                'features': genes,
+                'celltype': {
+                    'avg': avg_ge,
+                    'frac': frac_ge,
+                    'ncells': ncells_ge,
+                },
+                'celltype_dataset_timepoint': {
+                    'avg': avg_ge_tp,
+                    'frac': frac_ge_tp,
+                    'ncells': ncells_ge_tp,
+                },
+            }
+
+        print('Consolidate gene list across tissues')
+        needs_union = False
+        genes = None
+        for tissue, tdict in compressed_atlas.items():
+            genest = list(tdict['features'])
+            if genes is None:
+                genes = genest
+                continue
+            if genest != genes:
+                needs_union = True
+                genes = set(genes) | set(genest)
+
+        if needs_union:
+            raise NotImplementedError('TODO: make union of features')
+
+        print('Add gene annotations')
+        gene_annos = collect_gene_annotations(anno_fn, genes)
+
+        print('Store compressed atlas to file')
+        store_compressed_atlas(
+                fn_out,
+                compressed_atlas,
+                tissues,
+                gene_annos,
+                celltype_order,
+                measurement_type='gene_expression',
         )
 
-        # Fix cell type annotations
-        adata_tissue.obs['cellType'] = fix_annotations(
-            adata_tissue, 'cell_ontology_class', 'human', tissue,
-            rename_dict, coarse_cell_types,
-        )
+    if True:
+        print('ATAC')
+        compressed_atlas = {}
+        adata_all = anndata.read(atlas_fn_atac, backed='r')
 
-        # Correction might declare some cells as untyped/low quality
-        # they have an empty string instead of an actual annotation
-        if (adata_tissue.obs['cellType'] == '').sum() > 0:
-            idx = adata_tissue.obs['cellType'] != ''
-            adata_tissue = adata_tissue[idx]
+        print('Load metadata')
+        meta = pd.read_csv(atlas_fn_atac_meta, sep='\t', index_col=0).loc[adata_all.obs_names]
 
-        celltypes = get_celltype_order(
-            adata_tissue.obs['cellType'].value_counts().index,
-            celltype_order,
-        )
+        # Rename tissues (needs to be here because of the "backed" option)
+        print('Rename tissues')
+        meta['tissue'] = meta['tissue'].map(rename_dict['tissues'])
 
-        print('Add data to celltype group')
-        genes = adata_tissue.var_names
-        avg_ge = pd.DataFrame(
-                np.zeros((len(genes), len(celltypes)), np.float32),
-                index=genes,
-                columns=celltypes,
-                )
-        frac_ge = pd.DataFrame(
-                np.zeros((len(genes), len(celltypes)), np.float32),
-                index=genes,
-                columns=celltypes,
-                )
-        ncells_ge = pd.Series(
-                np.zeros(len(celltypes), np.int64), index=celltypes,
-                )
-        for celltype in celltypes:
-            idx = adata_tissue.obs['cellType'] == celltype
-            Xidx = adata_tissue[idx].X
-            avg_ge[celltype] = np.asarray(Xidx.mean(axis=0))[0]
-            frac_ge[celltype] = np.asarray((Xidx > 0).mean(axis=0))[0]
-            ncells_ge[celltype] = idx.sum()
+        print('Ignore fetal data for now')
+        adata_all = adata_all[meta['Life stage'] == 'Adult']
+        meta = meta.loc[adata_all.obs_names]
 
-        print('Add data to celltype-timepoint group')
-        # NOTE: see supplementary table 1 of the Science paper
-        adata_tissue.obs['age'] = adata_tissue.obs['donor'].map({
-            'TSP7': 69, 'TSP14': 59, 'TSP4': 38,
-        })
-        ages = adata_tissue.obs['age'].value_counts().index.tolist()
-        ages.sort()
-        columns_age = []
-        for ct in celltypes:
-            for age in ages:
-                columns_age.append('_'.join([ct, 'TS', str(age)]))
-
-        # Averages
-        genes = adata_tissue.var_names
-        avg_ge_tp = pd.DataFrame(
-                np.zeros((len(genes), len(celltypes) * len(ages)), np.float32),
-                index=genes,
-                columns=columns_age,
-                )
-        frac_ge_tp = pd.DataFrame(
-                np.zeros((len(genes), len(celltypes) * len(ages)), np.float32),
-                index=genes,
-                columns=columns_age,
-                )
-        ncells_ge_tp = pd.Series(
-                np.zeros(len(columns_age), np.int64), index=columns_age,
-                )
-        for celltype in celltypes:
-            adata_ct = adata_tissue[adata_tissue.obs['cellType'] == celltype]
-            for age in ages:
-                idx_age = (adata_ct.obs['age'] == age).values.nonzero()[0]
-                if len(idx_age) == 0:
-                    continue
-                Xct_age = adata_ct.X[idx_age]
-                label = '_'.join([celltype, 'TS', str(age)])
-                avg_ge_tp[label] = np.asarray(Xct_age.mean(axis=0))[0]
-                frac_ge_tp[label] = np.asarray((Xct_age > 0).mean(axis=0))[0]
-                ncells_ge_tp[label] = len(idx_age)
-
-        compressed_atlas[tissue] = {
-            'features': genes,
-            'celltype': {
-                'avg': avg_ge,
-                'frac': frac_ge,
-                'ncells': ncells_ge,
-            },
-            'celltype_dataset_timepoint': {
-                'avg': avg_ge_tp,
-                'frac': frac_ge_tp,
-                'ncells': ncells_ge_tp,
-            },
-        }
-
-    print('Consolidate gene list across tissues')
-    needs_union = False
-    genes = None
-    for tissue, tdict in compressed_atlas.items():
-        genest = list(tdict['features'])
-        if genes is None:
-            genes = genest
-            continue
-        if genest != genes:
-            needs_union = True
-            genes = set(genes) | set(genest)
-
-    if needs_union:
-        raise NotImplementedError('TODO: make union of features')
-
-    print('Add gene annotations')
-    gene_annos = collect_gene_annotations(anno_fn, genes)
-
-    print('Store compressed atlas to file')
-    store_compressed_atlas(
-            fn_out,
-            compressed_atlas,
-            tissues,
-            gene_annos,
-            celltype_order,
-    )
+        print('Assign obs (must be after all edits...)')
+        adata_all.obs = meta
+    

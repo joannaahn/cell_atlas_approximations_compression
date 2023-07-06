@@ -342,46 +342,57 @@ def store_compressed_atlas(
         fn_out,
         compressed_atlas,
         tissues,
-        gene_annos,
+        feature_annos,
         celltype_order,
+        measurement_type='gene_expression',
         ):
-    '''Store compressed atlas into h5 file'''
-    if gene_annos is not None:
-        genes = gene_annos.index.tolist()
-    else:
-        for tissue, group in compressed_atlas.items():
-            genes = group['features'].tolist()
+    '''Store compressed atlas into h5 file.
+
+    Args:
+        fn_out: The h5 file with the compressed atlas.
+        compressed_atlas: The dict with the result.
+        tissues: A list of tissues covered.
+        feature_annos: Gene annotations if available (only for gene expression).
+        celltype_order: The order of cell types.
+        measurement_type: What type of data this is (gene expression, chromatin accessibility, etc.).
+    '''
+    if measurement_type == 'gene_expression':
+        if feature_annos is not None:
+            genes = feature_annos.index.tolist()
+        else:
+            for tissue, group in compressed_atlas.items():
+                genes = group['features'].tolist()
 
     with h5py.File(fn_out, 'a') as h5_data:
-        ge = h5_data.create_group('gene_expression')
+        ge = h5_data.create_group(measurement_type)
         ge.create_dataset('features', data=np.array(genes).astype('S'))
 
-        if gene_annos is not None:
+        if feature_annos is not None:
             group = ge.create_group('feature_annotations')
             group.create_dataset(
-                    'gene_name', data=gene_annos.index.values.astype('S'))
+                    'gene_name', data=feature_annos.index.values.astype('S'))
             group.create_dataset(
                     'transcription_start_site',
-                    data=gene_annos['transcription_start_site'].values, dtype='i8')
+                    data=feature_annos['transcription_start_site'].values, dtype='i8')
             group.create_dataset(
                     'chromosome_name',
-                    data=gene_annos['chromosome_name'].astype('S'))
+                    data=feature_annos['chromosome_name'].astype('S'))
             group.create_dataset(
                     'start_position',
-                    data=gene_annos['start_position'].values, dtype='i8')
+                    data=feature_annos['start_position'].values, dtype='i8')
             group.create_dataset(
                     'end_position',
-                    data=gene_annos['end_position'].values, dtype='i8')
+                    data=feature_annos['end_position'].values, dtype='i8')
             group.create_dataset(
-                    'strand', data=gene_annos['strand'].values, dtype='i2')
+                    'strand', data=feature_annos['strand'].values, dtype='i2')
 
         ge.create_dataset('tissues', data=np.array(tissues).astype('S'))
         supergroup = ge.create_group('by_tissue')
         for tissue in tissues:
             tgroup = supergroup.create_group(tissue)
-            for label in ['celltype', 'celltype_dataset_timepoint']:
+            #for label in ['celltype', 'celltype_dataset_timepoint']:
+            for label in ['celltype']:
                 avg_ge = compressed_atlas[tissue][label]['avg']
-                frac_ge = compressed_atlas[tissue][label]['frac']
                 ncells_ge = compressed_atlas[tissue][label]['ncells']
 
                 group = tgroup.create_group(label)
@@ -390,9 +401,13 @@ def store_compressed_atlas(
                 group.create_dataset(
                         'average', data=avg_ge.T.values, dtype='f4')
                 group.create_dataset(
-                        'fraction', data=frac_ge.T.values, dtype='f4')
-                group.create_dataset(
                         'cell_count', data=ncells_ge.values, dtype='i8')
+
+                if measurement_type == 'gene_expression':
+                    frac_ge = compressed_atlas[tissue][label]['frac']
+                    group.create_dataset(
+                            'fraction', data=frac_ge.T.values, dtype='f4')
+
 
         ct_group = ge.create_group('celltypes')
         supertypes = np.array([x[0] for x in celltype_order])
