@@ -216,20 +216,24 @@ def subannotate(adata, species, annotation, verbose=True):
     return new_annotations
 
 
-def fix_annotations(adata, column, species, tissue, rename_dict, coarse_cell_types):
+def fix_annotations(adata, column, species, tissue, rename_dict, coarse_cell_types, blacklist=None):
     '''Correct cell types in each tissue according to known dict'''
-    blacklist = {
-        ('mouselemur', 'Bone Marrow'): ['lymphocyte', 'type II pneumocyte'],
-        ('mouselemur', 'Heart'): ['type II pneumocyte'],
-        ('mouselemur', 'Kidney'): ['stromal cell', 'urothelial cell'],
-        ('mouselemur', 'Lung'): ['epithelial cell of uterus'],
-        ('mouselemur', 'Pancreas'): ['stromal cell', 'pancreatic endocrine cell'],
-        ('mouselemur', 'Tongue'): ['stromal cell', 'pancreatic endocrine cell'],
-        ('c_elegans', 'whole'): ['Failed QC'],
-        ('a_queenslandica', 'whole'): ['choano_to_pinaco', 'unk_1', 'unk_2'],
-        ('m_leidyi', 'whole'): [f'unk_{x}' for x in range(1, 22)],
-        ('t_adhaerens', 'whole'): [f'unk_{x}' for x in range(1, 4)],
-    }
+    # FIXME: move to specific scripts
+    if blacklist is None:
+        blacklist = {
+            ('mouselemur', 'Bone Marrow'): ['lymphocyte', 'type II pneumocyte'],
+            ('mouselemur', 'Heart'): ['type II pneumocyte'],
+            ('mouselemur', 'Kidney'): ['stromal cell', 'urothelial cell'],
+            ('mouselemur', 'Lung'): ['epithelial cell of uterus'],
+            ('mouselemur', 'Pancreas'): ['stromal cell', 'pancreatic endocrine cell'],
+            ('mouselemur', 'Tongue'): ['stromal cell', 'pancreatic endocrine cell'],
+            ('c_elegans', 'whole'): ['Failed QC'],
+            ('a_queenslandica', 'whole'): ['choano_to_pinaco', 'unk_1', 'unk_2'],
+            ('m_leidyi', 'whole'): [f'unk_{x}' for x in range(1, 22)],
+            ('t_adhaerens', 'whole'): [f'unk_{x}' for x in range(1, 4)],
+        }
+    else:
+        blacklist = {(species, tissue): val for tissue, val in blacklist.items()}
 
     celltypes_new = np.asarray(adata.obs[column]).copy()
 
@@ -373,16 +377,15 @@ def store_compressed_atlas(
         celltype_order: The order of cell types.
         measurement_type: What type of data this is (gene expression, chromatin accessibility, etc.).
     '''
-    if measurement_type == 'gene_expression':
-        if feature_annos is not None:
-            genes = feature_annos.index.tolist()
-        else:
-            for tissue, group in compressed_atlas.items():
-                genes = group['features'].tolist()
+    if feature_annos is not None:
+        features = feature_annos.index.tolist()
+    else:
+        for tissue, group in compressed_atlas.items():
+            features = group['features'].tolist()
 
     with h5py.File(fn_out, 'a') as h5_data:
         ge = h5_data.create_group(measurement_type)
-        ge.create_dataset('features', data=np.array(genes).astype('S'))
+        ge.create_dataset('features', data=np.array(features).astype('S'))
 
         if feature_annos is not None:
             group = ge.create_group('feature_annotations')

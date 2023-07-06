@@ -88,6 +88,7 @@ rename_dict = {
         'heart_ra_CARE190307': 'Heart',
     },
     'cell_types': {
+        # RNA
         'cd24 neutrophil': 'neutrophil',
         'cd4-positive, alpha-beta t cell': 'T',
         'cd8-positive, alpha-beta t cell': 'T',
@@ -161,13 +162,145 @@ rename_dict = {
         'epithelial cell': 'epithelial',
         'tongue muscle cell': 'striated muscle',
         'schwann cell': 'schwann',
+        # ATAC
+        'Transitional Zone Cortical Cell': 'cortical',
+        'Zona Fasciculata Cortical Cell': 'cortical',
+        'Zona Glomerulosa Cortical Cell': 'cortical',
+        'Cortical Epithelial-like': 'cortical epi-like',
+        'Fibroblast (Liver Adrenal)': 'fibroblast',
+        'Macrophage (General)': 'macrophage',
+        'Endothelial (Exocrine Tissues)': 'capillary',
+        'Pericyte (General) 4': 'pericyte',
+        'Fibroblast (General)': 'fibroblast',
+        'Fibroblast (Peripheral Nerve)': 'fibroblast',
+        'T Lymphocyte 1 (CD8+)': 'T',
+        'Macrophage (General,Alveolar)': 'macrophage',
+        'Endothelial Cell (General) 1': 'capillary',
+        'Lymphatic Endothelial Cell': 'lymphatic',
+        'Schwann Cell (General)': 'schwann',
+        'Luteal Cell (Ovarian)': 'luteal',
+        'Adipocyte': 'adipocyte',
+        'Naive T cell': 'T',
+        'Cardiac Pericyte 4': 'pericyte',
+        'Natural Killer T Cell': 'NK',
+        'Pericyte (General) 3': 'pericyte',
+        'Memory B Cell': 'B',
+        'Cardiac Pericyte 3': 'pericyte',
+        'T lymphocyte 2 (CD4+)': 'T',
+        'Endothelial Cell (General) 2': 'capillary',
+        'Pericyte (General) 1': 'pericyte',
+        'Mast Cell': 'mast',
+        'Smooth Muscle (Vaginal)': 'smooth muscle',
+        'Vascular Smooth Muscle 2': 'vascular smooth muscle',
+        'Smooth Muscle (General)': 'smooth muscle',
+        'CNS,Enteric Neuron': 'neuron',
+        'Glutamatergic Neuron 1': 'neuron',
+        'Glutamatergic Neuron 2': 'neuron',
+        'Oligodendrocyte': 'oligodendrocyte',
+        'GABAergic Neuron 1': 'neuron',
+        'GABAergic Neuron 2': 'neuron',
+        'Oligodendrocyte Precursor': 'OPC',
+        'Microglia': 'glial',
+        'Astrocyte 1': 'astrocyte',
+        'Astrocyte 2': 'astrocyte',
+        'Blood Brain Barrier Endothelial Cell': 'capillary',
+        'Cardiac Fibroblasts': 'fibroblast',
+        'Cardiac Pericyte 2': 'pericyte',
+        'Endothelial Cell (Myocardial)': 'capillary',
+        'Pericyte (General) 2': 'pericyte',
+        'Colon Epithelial Cell 1': 'epithelial',
+        'Small Intestinal Enterocyte': 'enterocyte',
+        'Smooth Muscle (Colon) 1': 'smooth muscle',
+        'Fibroblast (Gastrointestinal)': 'fibroblast',
+        'Smooth Muscle (Colon) 2': 'smooth muscle',
+        'Colonic Goblet Cell': 'goblet',
+        'Plasma Cell': 'plasma cell',
+        'Small Intestinal Goblet Cell': 'goblet',
+        'Colon Epithelial Cell 2': 'epithelial',
+        'Colon Epithelial Cell 3': 'epithelial',
+        'Enterochromaffin Cell': 'enteroendocrine',
+        'Smooth Muscle (General Gastrointestinal)': 'smooth muscle',
+        'Tuft Cell': 'tuft',
+        'Paneth Cell': 'paneth',
+        'Smooth Muscle (Esophageal Muscularis) 3': 'smooth muscle',
+        'Endothelial Cell (General) 3': 'capillary',
+        'Pericyte (Esophageal Muscularis)': 'pericyte',
+        'Smooth Muscle (Esophageal Mucosal)': 'smooth muscle',
+        'Smooth Muscle (GE Junction)': 'smooth muscle',
+        'Smooth Muscle (Esophageal Muscularis) 1': 'smooth muscle',
+        'Smooth Muscle (Uterine)': 'smooth muscle',
+        'Vascular Smooth Muscle 1': 'vascular smooth muscle',
+        'Smooth Muscle (Esophageal Muscularis) 2': 'smooth muscle',
+        'Fibroblast (Epithelial)': 'fibroblast',
+        'Fibroblast (Sk Muscle Associated)': 'fibroblast',
+        'Gastric Neuroendocrine Cell': 'neuroendocrine',
+        'Alveolar Capillary Endothelial Cell': 'capillary',
+        'Keratinocyte 1': 'keratinocyte',
+        'Mesothelial Cell': 'mesothelial',
+        'Melanocyte': 'melanocyte',
+        'Esophageal Epithelial Cell': 'epithelial',
+        'Foveolar Cell': 'foveolar',
+        'Type I Skeletal Myocyte': 'striated muscle',
+        'Myoepithelial (Skin)': 'myoepithelial',
+        'Satellite Cell': 'satellite',
+        'Granular Epidermal (Skin)': 'epidermal',
+        'Basal Epidermal (Skin)': 'basal',
+        'Club Cell': 'club',
+        'Type II Skeletal Myocyte': 'striated muscle',
+        'Keratinocyte 2': 'keratinocyte',
+        'Chief Cell': 'chief',
+        'Ventricular Cardiomyocyte': 'cardiomyocyte',
+        'Atrial Cardiomyocyte': 'cardiomyocyte',
+        'Cardiac Pericyte 1': 'pericyte',
+        'Endocardial Cell': 'endocardial',
+        'Hepatocyte': 'hepatocyte',
     },
 }
+
+
+celltype_tissue_blacklist = {
+    'Adrenal': ['Luteal Cell (Ovarian)'],
+    'Brain': ['Peripheral Nerve Stromal'],
+    'Colon': [
+        'Mammary Luminal Epithelial Cell 2', 'Pancreatic Delta,Gamma cell',
+        'Ductal Cell (Pancreatic)',
+        'Chief Cell', # stomach
+    ],
+    'Esophagus': [
+        'Airway Goblet Cell',
+        'Peripheral Nerve Stromal',
+        'Mammary Luminal Epithelial Cell 2',
+        'Basal Epithelial (Mammary)',
+        'Thyroid Follicular Cell',
+        'Pancreatic Acinar Cell',
+    ],
+    'Fat': [
+        'Alverolar Type 2,Immune',
+        'Peripheral Nerve Stromal',
+        'Pancreatic Acinar Cell',
+        'Ductal Cell (Pancreatic)',
+    ],
+    'Heart': [
+        'Peripheral Nerve Stromal',
+        'Ductal Cell (Pancreatic)',
+        'Mammary Luminal Epithelial Cell 2',
+        'Pancreatic Acinar Cell',
+        'Alveolar Type 2 (AT2) Cell',
+        'Thyroid Follicular Cell',
+        'Alveolar Type 1 (AT1) Cell',
+    ],
+    'Liver': [
+        'Ductal Cell (Pancreatic)',
+        'Mammary Luminal Epithelial Cell 2',
+    ],
+}
+
 
 coarse_cell_types = [
     'endothelial',
     'immune cell',
 ]
+
 
 
 celltype_order = [
@@ -188,6 +321,7 @@ celltype_order = [
         'T',
         'NK',
         'plasmacytoid',
+        'glial',
     ]),
     ('epithelial', [
         'epithelial',
@@ -207,6 +341,13 @@ celltype_order = [
         'basal',
         'serous',
         'mucous',
+        'cortical epi-like',
+        'tuft',
+        'melanocyte',
+        'foveolar',
+        'myoepithelial',
+        'chief',
+        'epidermal',
     ]),
     ('endothelial', [
         'arterial',
@@ -215,6 +356,7 @@ celltype_order = [
         'capillary',
         'CAP2',
         'lymphatic',
+        'endocardial',
     ]),
     ('mesenchymal', [
         'fibroblast',
@@ -226,9 +368,11 @@ celltype_order = [
         'vascular smooth muscle',
         'pericyte',
         'mesothelial',
+        'satellite',
     ]),
     ('other', [
         'enteroendocrine',
+        'neuroendocrine',
         'hepatocyte',
         'ionocyte',
         'alpha',
@@ -236,6 +380,13 @@ celltype_order = [
         'PP',
         'delta',
         'schwann',
+        'adipocyte',
+        'cortical',
+        'luteal',
+        'neuron',
+        'oligodendrocyte',
+        'OPC',
+        'astrocyte',
     ]),
     ('unknown', [
         'unknown',
@@ -311,9 +462,7 @@ if __name__ == '__main__':
 
             print('Add data to celltype-timepoint group')
             # NOTE: see supplementary table 1 of the Science paper
-            adata_tissue.obs['age'] = adata_tissue.obs['donor'].map({
-                'TSP7': 69, 'TSP14': 59, 'TSP4': 38,
-            })
+            adata_tissue.obs['age'] = adata_tissue.obs['Life stage']
             ages = adata_tissue.obs['age'].value_counts().index.tolist()
             ages.sort()
             columns_age = []
@@ -398,14 +547,121 @@ if __name__ == '__main__':
         print('Load metadata')
         meta = pd.read_csv(atlas_fn_atac_meta, sep='\t', index_col=0).loc[adata_all.obs_names]
 
-        # Rename tissues (needs to be here because of the "backed" option)
-        print('Rename tissues')
-        meta['tissue'] = meta['tissue'].map(rename_dict['tissues'])
-
         print('Ignore fetal data for now')
-        adata_all = adata_all[meta['Life stage'] == 'Adult']
-        meta = meta.loc[adata_all.obs_names]
+        meta = meta.loc[meta['Life stage'] == 'Adult']
 
-        print('Assign obs (must be after all edits...)')
-        adata_all.obs = meta
-    
+        print('Rename tissues and exclude tissues with no name')
+        meta['tissue.orig'] = meta['tissue']
+        meta['tissue'] = pd.Series(
+                [x[:x.rfind('_')] for x in meta['tissue'].values],
+                index=meta.index,
+                ).map(rename_dict['tissues'])
+        meta = meta.loc[meta['tissue'] != '']
+
+        print('Get list of (renames) tissues')
+        tissues = np.sort(meta['tissue'].unique())
+
+        print('Iterate over tissues')
+        # FIXME
+        for it, tissue in enumerate(tissues[7:]):
+            print(tissue)
+
+            meta_tissue = meta.loc[meta['tissue'] == tissue]
+
+            # Load into memory
+            adata_tissue = adata_all[meta_tissue.index].to_memory()
+            adata_tissue.obs = meta_tissue.copy()
+
+            # Binarise ATAC counts
+            adata_tissue.X.data[:] = 1
+
+            # Fix cell type annotations
+            adata_tissue.obs['cellType'] = fix_annotations(
+                adata_tissue, 'cell type', 'human', tissue,
+                rename_dict, coarse_cell_types,
+                blacklist=celltype_tissue_blacklist,
+            )
+
+            # Correction might declare some cells as untyped/low quality
+            # they have an empty string instead of an actual annotation
+            if (adata_tissue.obs['cellType'] == '').sum() > 0:
+                idx = adata_tissue.obs['cellType'] != ''
+                adata_tissue = adata_tissue[idx]
+
+            celltypes = get_celltype_order(
+                adata_tissue.obs['cellType'].value_counts().index,
+                celltype_order,
+            )
+
+            print('Add data to celltype group')
+            features = adata_tissue.var_names
+            avg_ca = pd.DataFrame(
+                    np.zeros((len(features), len(celltypes)), np.float32),
+                    index=features,
+                    columns=celltypes,
+                    )
+            ncells_ca = pd.Series(
+                    np.zeros(len(celltypes), np.int64), index=celltypes,
+                    )
+            for celltype in celltypes:
+                idx = adata_tissue.obs['cellType'] == celltype
+                Xidx = adata_tissue[idx].X
+                avg_ca[celltype] = np.asarray(Xidx.mean(axis=0))[0]
+                ncells_ca[celltype] = idx.sum()
+
+            print('Add data to celltype-timepoint group')
+            # NOTE: see supplementary table 1 of the Science paper
+            adata_tissue.obs['age'] = adata_tissue.obs['Life stage'].copy()
+            ages = adata_tissue.obs['age'].value_counts().index.tolist()
+            ages.sort()
+            columns_age = []
+            for ct in celltypes:
+                for age in ages:
+                    columns_age.append('_'.join([ct, 'BR:ATAC', str(age)]))
+
+            # Averages
+            features = adata_tissue.var_names
+            avg_ca_tp = pd.DataFrame(
+                    np.zeros((len(features), len(celltypes) * len(ages)), np.float32),
+                    index=features,
+                    columns=columns_age,
+                    )
+            ncells_ca_tp = pd.Series(
+                    np.zeros(len(columns_age), np.int64), index=columns_age,
+                    )
+            for celltype in celltypes:
+                adata_ct = adata_tissue[adata_tissue.obs['cellType'] == celltype]
+                for age in ages:
+                    idx_age = (adata_ct.obs['age'] == age).values.nonzero()[0]
+                    if len(idx_age) == 0:
+                        continue
+                    Xct_age = adata_ct.X[idx_age]
+                    label = '_'.join([celltype, 'BR:ATAC', str(age)])
+                    avg_ca_tp[label] = np.asarray(Xct_age.mean(axis=0))[0]
+                    ncells_ca_tp[label] = len(idx_age)
+
+            compressed_atlas[tissue] = {
+                'features': features,
+                'celltype': {
+                    'avg': avg_ca,
+                    'ncells': ncells_ca,
+                },
+                'celltype_dataset_timepoint': {
+                    'avg': avg_ca_tp,
+                    'ncells': ncells_ca_tp,
+                },
+            }
+
+        #print('Add peak annotations')
+        #feature_annos = collect_gene_annotations(anno_fn, features)
+
+        print('Store compressed atlas to file')
+        store_compressed_atlas(
+                fn_out,
+                compressed_atlas,
+                tissues,
+                None,
+                celltype_order,
+                measurement_type='chromatin_accessibility',
+        )
+
