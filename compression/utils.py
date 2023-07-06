@@ -20,8 +20,12 @@ def get_tissue_data_dict(species, atlas_folder, rename_dict=None):
     result = []
 
     fns = os.listdir(atlas_folder)
-    fns = [x for x in fns if '.h5ad' in x]
-
+  
+    if species == "m_fascicularis":
+        fns = [x for x in fns if x.startswith('Matrix_')]
+    else:
+        fns = [x for x in fns if '.h5ad' in x]
+ 
     for filename in fns:
         if species == 'mouse':
             tissue = filename.split('-')[-1].split('.')[0]
@@ -32,17 +36,29 @@ def get_tissue_data_dict(species, atlas_folder, rename_dict=None):
         elif species in ('c_elegans', 'd_rerio', 's_lacustris',
                          'a_queenslandica', 'm_leidyi', 't_adhaerens'):
             tissue = 'whole'
+        elif species == "m_fascicularis":
+            tissue = filename.split('_')[1].split('.')[0]
         else:
             raise ValueError('species not found: {:}'.format(species))
 
         if rename_dict is not None:
             tissue = rename_dict['tissues'].get(tissue, tissue)
-        result.append({
-            'tissue': tissue,
-            'filename': atlas_folder / filename,
-        })
+            
+        if species == "m_fascicularis":
+            result.append({
+                'tissue': tissue,
+                'filename_count': filename,
+                'filename_meta': filename.replace('Matrix_', 'Metadata_')[:-3],
+            })
+        else:      
+            result.append({
+                'tissue': tissue,
+                'filename': atlas_folder / filename,
+            })
 
-    result = pd.DataFrame(result).set_index('tissue')['filename']
+    result = pd.DataFrame(result).set_index('tissue')
+    if species != "m_fascicularis":
+        result = result['filename']
 
     # Order tissues alphabetically
     result = result.sort_index()
@@ -122,6 +138,7 @@ def subannotate(adata, species, annotation, verbose=True):
             'neutrophil': ['S100A8', 'S100A9', 'STFA1', 'STFA2'],
             'erythrocyte': ['BETA-S', 'ALAS2', 'HBB-B2', 'TMEM14C'],
             '': ['SNRPF'],
+
         },
     }
 
