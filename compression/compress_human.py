@@ -187,6 +187,12 @@ rename_dict = {
         'ciliary body': '', # this seems poorly defined
         'retina horizontal cell': 'horizontal',
         'retinal ganglion cell': 'ganglion',
+        'liver dendritic cell': 'dendritic',
+        'endothelial cell of hepatic sinusoid': 'capillary', # will people understand?
+        'intrahepatic cholangiocyte': 'cholangiocyte',
+        'innate lymphoid cell': 'ILC',
+        'regulatory t cell': 'T',
+        'cd8-positive, alpha-beta memory t cell': 'T',
 
         # ATAC
         'Transitional Zone Cortical Cell': 'cortical',
@@ -404,9 +410,54 @@ coarse_cell_types = [
     'immune cell',
     'leucocyte',  # yes, a typo
     'mesenchymal stem cell',
+    'stromal cell',
 ]
 
-
+subannotation_kwargs = {
+    'markers': { 
+        'immune cell': {
+            'T': ['CD3D', 'CD3G', 'CD3E', 'TRAC', 'IL7R'],
+            'B': ['MS4A1', 'CD19', 'CD79A'],
+            'NK': ['PFN1', 'TMSB4XP8'],
+            'macrophage': ['MRC1', 'MARCO', 'CD163', 'C1QA', 'C1QB', 'CST3'],
+            'dendritic': ['FCER1A', 'IL1R2', 'CD86', 'HLA-DPB1', 'HLA-DRB1'],
+            'neutrophil': ['S100A8', 'S100A7'],
+        },
+        'leucocyte': {  # NOTE: yes, it's a typo
+            'T': ['CD3D', 'CD3G', 'CD3E', 'TRAC', 'IL7R'],
+            'B': ['MS4A1', 'CD19', 'CD79A'],
+            'NK': ['PFN1', 'TMSB4XP8'],
+            'macrophage': ['MRC1', 'MARCO', 'CD163', 'C1QA', 'C1QB', 'CST3'],
+            'dendritic': ['FCER1A', 'IL1R2', 'CD86', 'HLA-DPB1', 'HLA-DRB1'],
+            'neutrophil': ['S100A8', 'S100A7'],
+            '': ['AL512646.1', 'MAPK10', 'ZBTB20', 'TMSB4X'],
+        },
+        'mesenchymal stem cell': {
+            'pericyte': ['PDGFRB', 'TIMP2'],
+            'fibroblast': ['COL1A1', 'COL1A2', 'COL6A2', 'COL3A1', 'COL6A1', 'GPC3',
+                           'HEBP2', 'SVEP1', 'SCARA5', 'C1S', 'C1R', 'C3', 'PODN'],
+            'smooth muscle': ['MYH7', 'ACTA2', 'MYL9'],
+            '': ['RPL11', 'RPS6', 'PRDX6', 'IFITM1', 'SPARCL1', 'APOE'],
+        },
+        'endothelial': {
+            'arterial': ['GJA5', 'BMX', 'SEMA3G', 'VIM', 'FN1', 'SRGN'],
+            'venous': ['VWF', 'MMRN2', 'CLEC14A', 'ACKR1'],
+            'lymphatic': ['LYVE1', 'PROX1', 'THY1', 'MMRN1', 'TFF3', 'TFPI'],
+            'capillary': ['SLC9A3R2', 'PLPP1', 'PECAM1', 'IGKC', 'CALD1', 'CRHBP', 'KDR'],
+            'epithelial': ['COBLL1', 'EPCAM', 'CD24'],
+            '': [
+                'JUN', 'JUND', 'SQSTM1', 'SELENOH', 'FOS', 'ACP1', 'EPB41L2',
+                'MALAT1', 'CAP1', 'FABP5P7', 'XIST', 'TGFBR2', 'SPARCL1',
+                'FCN3', 'F8', 'BTNL9', 'FABP4', 'CFD', 'NEAT1'],
+            'acinar': ['PRSS2', 'ENPP2', 'GALNT15', 'APOD', 'CLPS'],
+        },
+    },
+    'bad_prefixes': [
+        'RPL', 'RPS', 'LINC', 'MT', 'EPAS1', 'DYNLL1',
+        'EIF3G', 'HLA-A', 'HLA-B', 'HLA-C', 'HLA-E',
+        'GZMA', 'GNLY', 'CD74', 'KRT4', 'TYROBP', 
+    ],
+}
 
 celltype_order = [
     ('immune', [
@@ -426,6 +477,7 @@ celltype_order = [
         'plasma cell',
         'T',
         'NK',
+        'ILC',
         'plasmacytoid',
         'glial',
         'platelet',
@@ -461,6 +513,7 @@ celltype_order = [
         'urothelial',
         'conjunctival',
         'corneal',
+        'cholangiocyte',
     ]),
     ('endothelial', [
         'arterial',

@@ -12,7 +12,10 @@ import scanpy as sc
 
 
 root_repo_folder = pathlib.Path(__file__).parent.parent
-output_folder = root_repo_folder / 'data' / 'atlas_approximations'
+# Try to put the output in the API repo if available
+output_folder = root_repo_folder / '..' / 'cell_atlas_approximations_API' / 'web' / 'static' / 'atlas_data'
+if not output_folder.is_dir():
+    output_folder = root_repo_folder / 'data' / 'atlas_approximations'
 
 
 def get_tissue_data_dict(species, atlas_folder, rename_dict=None):
@@ -66,7 +69,11 @@ def get_tissue_data_dict(species, atlas_folder, rename_dict=None):
     return result
 
 
-def subannotate(adata, species, annotation, verbose=True,
+def subannotate(adata,
+                species, annotation,
+                markers,
+                bad_prefixes,
+                verbose=True,
                 trash_unknown=True):
     '''This function subannotates a coarse annotation from an atlasi.
 
@@ -74,105 +81,10 @@ def subannotate(adata, species, annotation, verbose=True,
     a useless annotation unless you know what kind of lymphocytes these are, or
     if it's a mixed bag.
     '''
+    if bad_prefixes is None:
+        bad_prefixes = []
 
-    markers = {
-        ('human', 'immune cell'): {
-            'T': ['CD3D', 'CD3G', 'CD3E', 'TRAC', 'IL7R'],
-            'B': ['MS4A1', 'CD19', 'CD79A'],
-            'NK': ['PFN1', 'TMSB4XP8'],
-            'macrophage': ['MRC1', 'MARCO', 'CD163', 'C1QA', 'C1QB', 'CST3'],
-            'dendritic': ['FCER1A', 'IL1R2', 'CD86', 'HLA-DPB1', 'HLA-DRB1'],
-            'neutrophil': ['S100A8', 'S100A7'],
-        },
-        ('human', 'leucocyte'): {  # NOTE: yes, it's a typo
-            'T': ['CD3D', 'CD3G', 'CD3E', 'TRAC', 'IL7R'],
-            'B': ['MS4A1', 'CD19', 'CD79A'],
-            'NK': ['PFN1', 'TMSB4XP8'],
-            'macrophage': ['MRC1', 'MARCO', 'CD163', 'C1QA', 'C1QB', 'CST3'],
-            'dendritic': ['FCER1A', 'IL1R2', 'CD86', 'HLA-DPB1', 'HLA-DRB1'],
-            'neutrophil': ['S100A8', 'S100A7'],
-            '': ['AL512646.1', 'MAPK10', 'ZBTB20', 'TMSB4X'],
-        },
-        ('human', 'mesenchymal stem cell'): {
-            'pericyte': ['PDGFRB', 'TIMP2'],
-            'fibroblast': ['COL1A1', 'COL1A2', 'COL6A2', 'COL3A1', 'COL6A1', 'GPC3',
-                           'HEBP2', 'SVEP1', 'SCARA5', 'C1S', 'C1R', 'C3', 'PODN'],
-            'smooth muscle': ['MYH7', 'ACTA2', 'MYL9'],
-            '': ['RPL11', 'RPS6', 'PRDX6', 'IFITM1', 'SPARCL1', 'APOE'],
-        },
-        ('human', 'endothelial'): {
-            'arterial': ['GJA5', 'BMX', 'SEMA3G', 'VIM', 'FN1', 'SRGN'],
-            'venous': ['VWF', 'MMRN2', 'CLEC14A', 'ACKR1'],
-            'lymphatic': ['LYVE1', 'PROX1', 'THY1', 'MMRN1', 'TFF3', 'TFPI'],
-            'capillary': ['SLC9A3R2', 'PLPP1', 'PECAM1', 'IGKC', 'CALD1', 'CRHBP', 'KDR'],
-            'epithelial': ['COBLL1', 'EPCAM', 'CD24'],
-            '': [
-                'JUN', 'JUND', 'SQSTM1', 'SELENOH', 'FOS', 'ACP1', 'EPB41L2',
-                'MALAT1', 'CAP1', 'FABP5P7', 'XIST', 'TGFBR2', 'SPARCL1',
-                'FCN3', 'F8', 'BTNL9', 'FABP4', 'CFD', 'NEAT1'],
-            'acinar': ['PRSS2', 'ENPP2', 'GALNT15', 'APOD', 'CLPS'],
-        },
-        ('mouse', 'endothelial cell'): {
-            'arterial': ['Gja5', 'Bmx'],
-            'venous': ['Slc6a2', 'Vwf'],
-            'lymphatic': ['Ccl21a', 'Prox1', 'Thy1'],
-            'capillary': ['Rn45s', 'Slc6a6', 'Comt'],
-            'smooth muscle': [
-                'Thy1', 'Mustn1', 'Gng11', 'Mgp', 'Acta2', 'Aspn', 'Myl9'],
-            'pericyte': ['Pdgfrb', 'Cox4i2', 'Higd1b'],
-            'dendritic': ['Cd34', 'Cd300lg', 'Ly6c1', 'Ramp3'],
-            'beta': ['Iapp', 'Ins1', 'Ins2', 'Srgn', 'Syngr2', 'Tsc22d1',
-                     'Igfbp3'],
-            'alpha': ['Chga', 'Gcg'],
-            'acinar': ['Prss2', 'Try5', 'Sycn', 'Ctrb1', 'Clps', 'Ndrg1', 'Fabp4'],
-            'stellate': ['Plac9'],
-            'PP': ['Ppy'],
-        },
-        ('mouse', 'lymphocyte'): {
-            'B': ['Ms4a1', 'Cd79a', 'Cd79b', 'Cd19'],
-            'T': ['Trac', 'Cd3e', 'Cd3d', 'Cd3g'],
-            'NK': ['Gzma', 'Ncam1'],
-            'macrophage': ['C1qa', 'Cd68', 'Marco', 'Cst3'],
-            'monocyte': ['Psap', 'Cd14'],
-            'neutrophil': ['S100a8', 'S100a9', 'Stfa1', 'Stfa2'],
-            'erythrocyte': ['Beta-s', 'Alas2', 'Hbb-b2', 'Tmem14c'],
-            '': ['Snrpf'],
-        },
-        ('mouse', 'leukocyte'): {
-            'B': ['Ms4a1', 'Cd79a', 'Cd79b', 'Cd19'],
-            'T': ['Trac', 'Cd3e', 'Cd3d', 'Cd3g'],
-            'NK': ['Gzma', 'Ncam1'],
-            'macrophage': ['C1qa', 'Cd68', 'Marco', 'Cst3'],
-            'monocyte': ['Psap', 'Cd14'],
-            'neutrophil': ['S100a8', 'S100a9', 'Stfa1', 'Stfa2'],
-        },
-        ('mouselemur', 'lymphocyte'): {
-            'B': ['MS4A1', 'CD79A', 'CD79B', 'CD19'],
-            'T': ['TRAC', 'CD3E', 'CD3D', 'CD3G'],
-            'NK': ['GZMA', 'NCAM1', 'FCER1G', 'GZMK', 'KLRB1'],
-            'macrophage': ['C1QA', 'CD68', 'MARCO', 'CST3'],
-            'monocyte': ['PSAP', 'CD14'],
-            'neutrophil': ['S100A8', 'S100A9', 'STFA1', 'STFA2'],
-            'erythrocyte': ['BETA-S', 'ALAS2', 'HBB-B2', 'TMEM14C'],
-            '': ['SNRPF'],
-
-        },
-    }
-
-    bad_prefixes = {
-        'mouse': ['Rpl', 'Rps', 'Linc', 'Mt'],
-        'human': [
-            'RPL', 'RPS', 'LINC', 'MT', 'EPAS1', 'DYNLL1',
-            'EIF3G', 'HLA-A', 'HLA-B', 'HLA-C', 'HLA-E',
-            'GZMA', 'GNLY', 'CD74', 'KRT4', 'TYROBP'],
-        'mouselemur': [
-            'RPL', 'RPS', 'LINC', 'MT', 'EPAS1', 'DYNLL1',
-            'EIF3G', 'HLA-A', 'HLA-B', 'HLA-C', 'HLA-E',
-            'GZMA', 'GNLY', 'CD74', 'KRT4', 'TYROBP',
-            'UBA52', 'LOC1', 'MYBL2', 'MAL', 'ATP5A1', 'ARHGAP15'],
-    }
-
-    markersi = markers.get((species, annotation), None)
+    markersi = markers.get(annotation, None)
     if markersi is None:
         raise ValueError(
             f'Cannot subannotate without markers for {species}, {annotation}')
@@ -200,7 +112,11 @@ def subannotate(adata, species, annotation, verbose=True,
     sc.tl.leiden(adatam)
 
     adata.obs['subleiden'] = adatam.obs['leiden']
-    sc.tl.rank_genes_groups(adata, 'subleiden')
+    sc.tl.rank_genes_groups(
+        adata,
+        'subleiden',
+        method='t-test_overestim_var',
+    )
     top_marker = pd.DataFrame(adata.uns['rank_genes_groups']['names']).head(2)
 
     subannos = {}
@@ -210,7 +126,7 @@ def subannotate(adata, species, annotation, verbose=True,
             if found:
                 break
             found_bad_prefix = False
-            for bad_pfx in bad_prefixes[species]:
+            for bad_pfx in bad_prefixes:
                 if gene.startswith(bad_pfx):
                     found_bad_prefix = True
                     break
@@ -237,30 +153,21 @@ def subannotate(adata, species, annotation, verbose=True,
     return new_annotations
 
 
-def fix_annotations(adata, column, species, tissue, rename_dict, coarse_cell_types, blacklist=None):
+def fix_annotations(
+    adata, column, species, tissue, rename_dict, coarse_cell_types,
+    blacklist=None, subannotation_kwargs=None,
+):
     '''Correct cell types in each tissue according to known dict'''
-    # FIXME: move to specific scripts
     if blacklist is None:
-        blacklist = {
-            ('mouselemur', 'Bone Marrow'): ['lymphocyte', 'type II pneumocyte'],
-            ('mouselemur', 'Heart'): ['type II pneumocyte'],
-            ('mouselemur', 'Kidney'): ['stromal cell', 'urothelial cell'],
-            ('mouselemur', 'Lung'): ['epithelial cell of uterus'],
-            ('mouselemur', 'Pancreas'): ['stromal cell', 'pancreatic endocrine cell'],
-            ('mouselemur', 'Tongue'): ['stromal cell', 'pancreatic endocrine cell'],
-            ('c_elegans', 'whole'): ['Failed QC'],
-            ('a_queenslandica', 'whole'): ['choano_to_pinaco', 'unk_1', 'unk_2'],
-            ('m_leidyi', 'whole'): [f'unk_{x}' for x in range(1, 22)],
-            ('t_adhaerens', 'whole'): [f'unk_{x}' for x in range(1, 4)],
-        }
-    else:
-        blacklist = {(species, tissue): val for tissue, val in blacklist.items()}
+        blacklist = {}
+    if subannotation_kwargs is None:
+        subannotation_kwargs = {}
 
     celltypes_new = np.asarray(adata.obs[column]).copy()
 
     # Exclude blacklisted
-    if (species, tissue) in blacklist:
-        for ctraw in blacklist[(species, tissue)]:
+    if tissue in blacklist:
+        for ctraw in blacklist[tissue]:
             celltypes_new[celltypes_new == ctraw] = ''
 
     # Rename according to standard dict
@@ -282,7 +189,9 @@ def fix_annotations(adata, column, species, tissue, rename_dict, coarse_cell_typ
             idx = celltypes_new == celltype
             adata_coarse_type = adata[idx]
             subannotations = subannotate(
-                adata_coarse_type, species, celltype)
+                adata_coarse_type, species, celltype,
+                **subannotation_kwargs,
+            )
 
             # Ignore reclustering into already existing types, we have enough
             for subanno in subannotations:

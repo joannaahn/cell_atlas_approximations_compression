@@ -60,6 +60,10 @@ rename_dict = {
     },
 }
 
+celltype_tissue_blacklist = {
+    'whole': ['Failed QC'],
+}
+
 coarse_cell_types = [
 ]
 
@@ -141,6 +145,7 @@ if __name__ == '__main__':
         adata_tissue.obs['cellType'] = fix_annotations(
             adata_tissue, 'cell.type', 'c_elegans', tissue,
             rename_dict, coarse_cell_types,
+            blacklist=celltype_tissue_blacklist,
         )
 
         # Age
