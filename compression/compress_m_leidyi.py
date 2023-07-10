@@ -29,7 +29,7 @@ from utils import (
 
 species = 'm_leidyi'
 dataset_name = 'SebePedros'
-atlas_data_folder = root_repo_folder / 'data' / 'full_atlases' / 'a_queenslandica' / 'Single_cell_datasets' / 'Mnemiopsis'
+atlas_data_folder = root_repo_folder / 'data' / 'full_atlases' / 'RNA' / 'a_queenslandica' / 'Single_cell_datasets' / 'Mnemiopsis'
 # There cannot be an annotation yet since the transcriptome was assembled here
 #anno_fn = root_repo_folder / 'data' / 'gene_annotations' / 'c_elegans.PRJNA13758.WS287.annotations.gff3.gz'
 fn_out = output_folder / f'{species}.h5'

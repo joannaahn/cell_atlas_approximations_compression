@@ -29,7 +29,7 @@ from utils import (
 
 species = 'a_queenslandica'
 dataset_name = 'SebePedros'
-atlas_data_folder = root_repo_folder / 'data' / 'full_atlases' / species / 'Single_cell_datasets' / 'Amphimedon'
+atlas_data_folder = root_repo_folder / 'data' / 'full_atlases' / 'RNA' / species / 'Single_cell_datasets' / 'Amphimedon'
 # There cannot be an annotation yet since the transcriptome was assembled here
 #anno_fn = root_repo_folder / 'data' / 'gene_annotations' / 'c_elegans.PRJNA13758.WS287.annotations.gff3.gz'
 fn_out = output_folder / f'{species}.h5'
@@ -224,4 +224,5 @@ if __name__ == '__main__':
             tissues,
             gene_annos,
             celltype_order,
+            compression=True,
     )

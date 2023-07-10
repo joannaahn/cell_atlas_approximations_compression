@@ -2,7 +2,7 @@
 '''
 author:     Fabio Zanini
 date:       16/05/22
-content:    Compress Tabula Microcebus.
+content:    Compress mouse lemur (Tabula Microcebus).
 '''
 import os
 import sys
@@ -28,9 +28,9 @@ from utils import (
 
 
 species = "m_myoxinous"
-tmc_data_folder = root_repo_folder / 'data' / 'full_atlases' / 'tabula_microcebus'
+atlas_data_folder = root_repo_folder / 'data' / 'full_atlases' / 'RNA' / 'tabula_microcebus'
 anno_fn = root_repo_folder / 'data' / 'gene_annotations' / 'Microcebus_murinus.Mmur_3.0.109.gtf.gz'
-fn_out = output_folder / 'tabula_microcebus.h5'
+fn_out = output_folder / 'm_myoxinus.h5'
 
 
 rename_dict = {
@@ -261,7 +261,8 @@ if __name__ == '__main__':
     compressed_atlas = {}
 
     tissue_sources = get_tissue_data_dict(
-            'lemur', tmc_data_folder, rename_dict)
+        'lemur', atlas_data_folder, rename_dict,
+    )
     tissues = list(tissue_sources.keys())
     for it, (tissue, full_atlas_fn) in enumerate(tissue_sources.items()):
         print(tissue)

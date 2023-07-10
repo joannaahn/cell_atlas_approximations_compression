@@ -913,7 +913,7 @@ if __name__ == '__main__':
                 # Averages
                 features = adata_tissue.var_names
                 avg_ca_tp = pd.DataFrame(
-                        np.zeros((len(features), len(celltypes) * len(ages)), np.float32),
+                        np.zeros((len(features), len(celltypes) * len(ages)), np.uint8),
                         index=features,
                         columns=columns_age,
                         )

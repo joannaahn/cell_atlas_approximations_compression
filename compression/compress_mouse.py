@@ -35,9 +35,9 @@ from utils import (
 
 
 species = "m_musculus"
-tms_data_folder = root_repo_folder / 'data' / 'full_atlases' / 'tabula_muris_senis'
-anno_fn = root_repo_folder / 'data' / 'gene_annotations' / 'mm10.ncbiRefSeq.gtf.gz'
-fn_out = output_folder / 'tabula_muris_senis.h5'
+tms_data_folder = root_repo_folder / 'data' / 'full_atlases' / 'RNA' / 'tabula_muris_senis'
+anno_fn = root_repo_folder / 'data' / 'gene_annotations' / 'Mus_musculus.GRCm38.102.gtf.gz'
+fn_out = output_folder / 'm_musculus.h5'
 
 
 rename_dict = {
@@ -166,7 +166,7 @@ subannotation_kwargs = {
             'monocyte': ['Psap', 'Cd14'],
             'neutrophil': ['S100a8', 'S100a9', 'Stfa1', 'Stfa2'],
         },
-    }
+    },
     'bad_prefixes': [
         'Rpl', 'Rps', 'Linc', 'Mt',
     ],
