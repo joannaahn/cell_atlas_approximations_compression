@@ -74,13 +74,18 @@ def subannotate(adata,
                 markers,
                 bad_prefixes,
                 verbose=True,
-                trash_unknown=True):
+                trash_unknown=True,
+                skip_subannotation=False):
     '''This function subannotates a coarse annotation from an atlasi.
 
     This is ad-hoc, but that's ok for now. Examples are 'lymphocyte', which is
     a useless annotation unless you know what kind of lymphocytes these are, or
     if it's a mixed bag.
     '''
+    # If skipping, return list of empty annotations - basically blacklisting
+    if skip_subannotation:
+        return [""] * adata.shape[0]
+
     if bad_prefixes is None:
         bad_prefixes = []
 
@@ -172,7 +177,13 @@ def fix_annotations(
 
     # Rename according to standard dict
     for ctraw, celltype in rename_dict['cell_types'].items():
-        celltypes_new[celltypes_new == ctraw] = celltype
+        if isinstance(ctraw, str):
+            celltypes_new[celltypes_new == ctraw] = celltype
+        else:
+            # Organ-specific renames
+            organraw, ctraw = ctraw
+            if organraw == tissue:
+                celltypes_new[celltypes_new == ctraw] = celltype
 
     ct_found = np.unique(celltypes_new)
 
@@ -243,6 +254,8 @@ def collect_gene_annotations(anno_fn, genes):
             transcript_id = None
             for attr in attrs:
                 if 'gene_name' in attr:
+                    gene_name = attr.split(' ')[-1][1:-1]
+                elif " gene " in attr:
                     gene_name = attr.split(' ')[-1][1:-1]
                 elif 'transcript_id' in attr:
                     transcript_id = attr.split(' ')[-1][1:-1]
@@ -373,9 +386,10 @@ def store_compressed_atlas(
             group = me.create_group('feature_annotations')
             group.create_dataset(
                     'gene_name', data=feature_annos.index.values.astype('S'))
-            group.create_dataset(
-                    'transcription_start_site',
-                    data=feature_annos['transcription_start_site'].values, dtype='i8')
+            if 'transcription_start_site' in feature_annos.columns:
+                group.create_dataset(
+                        'transcription_start_site',
+                        data=feature_annos['transcription_start_site'].values, dtype='i8')
             group.create_dataset(
                     'chromosome_name',
                     data=feature_annos['chromosome_name'].astype('S'))
