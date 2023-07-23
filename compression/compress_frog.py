@@ -150,6 +150,7 @@ celltype_tissue_blacklist = {
         "Cumulus cell",
         "Epidermal stem cell",
         "Epithelial cell",
+        "Delta cell",
     ],
     "Ovary": [
         "Spermatogonia",
