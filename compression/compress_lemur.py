@@ -2,7 +2,7 @@
 '''
 author:     Fabio Zanini
 date:       16/05/22
-content:    Compress Tabula Microcebus.
+content:    Compress mouse lemur (Tabula Microcebus).
 '''
 import os
 import sys
@@ -28,9 +28,9 @@ from utils import (
 
 
 species = "m_myoxinous"
-tmc_data_folder = root_repo_folder / 'data' / 'full_atlases' / 'tabula_microcebus'
+atlas_data_folder = root_repo_folder / 'data' / 'full_atlases' / 'RNA' / 'tabula_microcebus'
 anno_fn = root_repo_folder / 'data' / 'gene_annotations' / 'Microcebus_murinus.Mmur_3.0.109.gtf.gz'
-fn_out = output_folder / 'tabula_microcebus.h5'
+fn_out = output_folder / 'm_myoxinus.h5'
 
 
 rename_dict = {
@@ -116,11 +116,41 @@ rename_dict = {
     },
 }
 
+celltype_tissue_blacklist = {
+    'Bone Marrow': ['lymphocyte', 'type II pneumocyte'],
+    'Heart': ['type II pneumocyte'],
+    'Kidney': ['stromal cell', 'urothelial cell'],
+    'Lung': ['epithelial cell of uterus'],
+    'Pancreas': ['stromal cell', 'pancreatic endocrine cell'],
+    'Tongue': ['stromal cell', 'pancreatic endocrine cell'],
+}
+
 coarse_cell_types = [
     'endothelial',
     'immune cell',
     'lymphocyte',
 ]
+
+subannotation_kwargs = {
+    'markers': {
+        'lymphocyte': {
+            'B': ['MS4A1', 'CD79A', 'CD79B', 'CD19'],
+            'T': ['TRAC', 'CD3E', 'CD3D', 'CD3G'],
+            'NK': ['GZMA', 'NCAM1', 'FCER1G', 'GZMK', 'KLRB1'],
+            'macrophage': ['C1QA', 'CD68', 'MARCO', 'CST3'],
+            'monocyte': ['PSAP', 'CD14'],
+            'neutrophil': ['S100A8', 'S100A9', 'STFA1', 'STFA2'],
+            'erythrocyte': ['BETA-S', 'ALAS2', 'HBB-B2', 'TMEM14C'],
+            '': ['SNRPF'],
+        },
+    },
+    'bad_prefixes': [
+        'RPL', 'RPS', 'LINC', 'MT', 'EPAS1', 'DYNLL1',
+        'EIF3G', 'HLA-A', 'HLA-B', 'HLA-C', 'HLA-E',
+        'GZMA', 'GNLY', 'CD74', 'KRT4', 'TYROBP',
+        'UBA52', 'LOC1', 'MYBL2', 'MAL', 'ATP5A1', 'ARHGAP15'
+    ],
+}
 
 
 celltype_order = [
@@ -231,7 +261,8 @@ if __name__ == '__main__':
     compressed_atlas = {}
 
     tissue_sources = get_tissue_data_dict(
-            'lemur', tmc_data_folder, rename_dict)
+        'lemur', atlas_data_folder, rename_dict,
+    )
     tissues = list(tissue_sources.keys())
     for it, (tissue, full_atlas_fn) in enumerate(tissue_sources.items()):
         print(tissue)
@@ -246,6 +277,8 @@ if __name__ == '__main__':
         adata_tissue.obs['cellType'] = fix_annotations(
             adata_tissue, 'cell_ontology_class_v1', 'mouselemur', tissue,
             rename_dict, coarse_cell_types,
+            blacklist=celltype_tissue_blacklist,
+            subannotation_kwargs=subannotation_kwargs,
         )
 
         # Correction might declare some cells as untyped/low quality

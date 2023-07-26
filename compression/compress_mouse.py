@@ -35,9 +35,9 @@ from utils import (
 
 
 species = "m_musculus"
-tms_data_folder = root_repo_folder / 'data' / 'full_atlases' / 'tabula_muris_senis'
-anno_fn = root_repo_folder / 'data' / 'gene_annotations' / 'mm10.ncbiRefSeq.gtf.gz'
-fn_out = output_folder / 'tabula_muris_senis.h5'
+tms_data_folder = root_repo_folder / 'data' / 'full_atlases' / 'RNA' / 'tabula_muris_senis'
+anno_fn = root_repo_folder / 'data' / 'gene_annotations' / 'Mus_musculus.GRCm38.102.gtf.gz'
+fn_out = output_folder / 'm_musculus.h5'
 
 
 rename_dict = {
@@ -122,11 +122,55 @@ rename_dict = {
     }
 }
 
+celltype_tissue_blacklist = {}
+
 coarse_cell_types = [
     'endothelial cell',  # pancreas
     'lymphocyte',  # kidney -> legit mixture with low-qual as well
     #'leukocyte',  # kidney
 ]
+
+subannotation_kwargs = {
+    'markers': {
+        'endothelial cell': {
+            'arterial': ['Gja5', 'Bmx'],
+            'venous': ['Slc6a2', 'Vwf'],
+            'lymphatic': ['Ccl21a', 'Prox1', 'Thy1'],
+            'capillary': ['Rn45s', 'Slc6a6', 'Comt'],
+            'smooth muscle': [
+                'Thy1', 'Mustn1', 'Gng11', 'Mgp', 'Acta2', 'Aspn', 'Myl9'],
+            'pericyte': ['Pdgfrb', 'Cox4i2', 'Higd1b'],
+            'dendritic': ['Cd34', 'Cd300lg', 'Ly6c1', 'Ramp3'],
+            'beta': ['Iapp', 'Ins1', 'Ins2', 'Srgn', 'Syngr2', 'Tsc22d1',
+                     'Igfbp3'],
+            'alpha': ['Chga', 'Gcg'],
+            'acinar': ['Prss2', 'Try5', 'Sycn', 'Ctrb1', 'Clps', 'Ndrg1', 'Fabp4'],
+            'stellate': ['Plac9'],
+            'PP': ['Ppy'],
+        },
+        'lymphocyte': {
+            'B': ['Ms4a1', 'Cd79a', 'Cd79b', 'Cd19'],
+            'T': ['Trac', 'Cd3e', 'Cd3d', 'Cd3g'],
+            'NK': ['Gzma', 'Ncam1'],
+            'macrophage': ['C1qa', 'Cd68', 'Marco', 'Cst3'],
+            'monocyte': ['Psap', 'Cd14'],
+            'neutrophil': ['S100a8', 'S100a9', 'Stfa1', 'Stfa2'],
+            'erythrocyte': ['Beta-s', 'Alas2', 'Hbb-b2', 'Tmem14c'],
+            '': ['Snrpf'],
+        },
+        'leukocyte': {
+            'B': ['Ms4a1', 'Cd79a', 'Cd79b', 'Cd19'],
+            'T': ['Trac', 'Cd3e', 'Cd3d', 'Cd3g'],
+            'NK': ['Gzma', 'Ncam1'],
+            'macrophage': ['C1qa', 'Cd68', 'Marco', 'Cst3'],
+            'monocyte': ['Psap', 'Cd14'],
+            'neutrophil': ['S100a8', 'S100a9', 'Stfa1', 'Stfa2'],
+        },
+    },
+    'bad_prefixes': [
+        'Rpl', 'Rps', 'Linc', 'Mt',
+    ],
+}
 
 # We store an organism-wide complete ordering of cell types, and each tissue
 # will cherry pick the necessary
@@ -243,6 +287,8 @@ if __name__ == '__main__':
         adata_tissue.obs['cellType'] = fix_annotations(
             adata_tissue, 'cell_ontology_class', 'mouse', tissue,
             rename_dict, coarse_cell_types,
+            blacklist=celltype_tissue_blacklist,
+            subannotation_kwargs=subannotation_kwargs,
         )
 
         # Correction might declare some cells as untyped/low quality

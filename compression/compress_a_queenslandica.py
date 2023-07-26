@@ -29,7 +29,7 @@ from utils import (
 
 species = 'a_queenslandica'
 dataset_name = 'SebePedros'
-atlas_data_folder = root_repo_folder / 'data' / 'full_atlases' / species / 'Single_cell_datasets' / 'Amphimedon'
+atlas_data_folder = root_repo_folder / 'data' / 'full_atlases' / 'RNA' / species / 'Single_cell_datasets' / 'Amphimedon'
 # There cannot be an annotation yet since the transcriptome was assembled here
 #anno_fn = root_repo_folder / 'data' / 'gene_annotations' / 'c_elegans.PRJNA13758.WS287.annotations.gff3.gz'
 fn_out = output_folder / f'{species}.h5'
@@ -44,6 +44,10 @@ rename_dict = {
         'pinaco_1': 'pinacocytes',
         'pinaco_2': 'pinacocytes',
     },
+}
+
+celltype_tissue_blacklist = {
+    'whole': ['choano_to_pinaco', 'unk_1', 'unk_2'],
 }
 
 coarse_cell_types = [
@@ -106,6 +110,7 @@ if __name__ == '__main__':
         adata_tissue.obs['cellType'] = fix_annotations(
             adata_tissue, 'cell_type', species, tissue,
             rename_dict, coarse_cell_types,
+            blacklist=celltype_tissue_blacklist,
         )
 
         # Age
@@ -219,4 +224,5 @@ if __name__ == '__main__':
             tissues,
             gene_annos,
             celltype_order,
+            compression=True,
     )

@@ -28,7 +28,7 @@ from utils import (
 
 
 species = 'd_rerio'
-atlas_data_folder = root_repo_folder / 'data' / 'full_atlases' / 'danio_rerio'
+atlas_data_folder = root_repo_folder / 'data' / 'full_atlases' / 'RNA' / 'danio_rerio'
 anno_fn = root_repo_folder / 'data' / 'gene_annotations' / 'Danio_rerio.GRCz11.109.gtf.gz'
 fn_out = output_folder / f'{species}.h5'
 

@@ -12,26 +12,26 @@ import scanpy as sc
 
 
 root_repo_folder = pathlib.Path(__file__).parent.parent
-output_folder = root_repo_folder / 'data' / 'atlas_approximations'
+# Try to put the output in the API repo if available
+output_folder = root_repo_folder / '..' / 'cell_atlas_approximations_API' / 'web' / 'static' / 'atlas_data'
+if not output_folder.is_dir():
+    output_folder = root_repo_folder / 'data' / 'atlas_approximations'
+
 
 def get_tissue_data_dict(species, atlas_folder, rename_dict=None):
     
     result = []
 
-    fns = os.listdir(root_repo_folder)
-    print(root_repo_folder)
-
-    fns = [x for x in fns if '.h5ad' in x]
-
-    # fns is an empty list, so line 26~57 won't be access (was skipped by the script)
-    print(fns)
+    fns = os.listdir(atlas_folder)
+    fns = [x for x in fns if x.endswith('.h5ad')]
+ 
     for filename in fns:
         if species == 'mouse':
             tissue = filename.split('_')[-1].split('.')[0]
         elif species == 'human':
             tissue = filename[3:-5]
         elif species == 'lemur':
-            tissue = tissue[:-len('_FIRM_hvg')].replace('_', ' ').title()
+            tissue = filename[:-len('_FIRM_hvg.h5ad')].replace('_', ' ').title()
         elif species in ('c_elegans', 'd_rerio', 's_lacustris',
                          'a_queenslandica', 'm_leidyi', 't_adhaerens'):
             tissue = 'whole'
@@ -72,96 +72,27 @@ def get_tissue_data_dict(species, atlas_folder, rename_dict=None):
     return result
 
 
-def subannotate(adata, species, annotation, verbose=True):
+def subannotate(adata,
+                species, annotation,
+                markers,
+                bad_prefixes,
+                verbose=True,
+                trash_unknown=True,
+                skip_subannotation=False):
     '''This function subannotates a coarse annotation from an atlasi.
 
     This is ad-hoc, but that's ok for now. Examples are 'lymphocyte', which is
     a useless annotation unless you know what kind of lymphocytes these are, or
     if it's a mixed bag.
     '''
+    # If skipping, return list of empty annotations - basically blacklisting
+    if skip_subannotation:
+        return [""] * adata.shape[0]
 
-    markers = {
-        ('human', 'immune cell'): {
-            'T': ['CD3D', 'CD3G', 'CD3E', 'TRAC', 'IL7R'],
-            'B': ['MS4A1', 'CD19', 'CD79A'],
-            'NK': ['PFN1', 'TMSB4XP8'],
-            'macrophage': ['MRC1', 'MARCO', 'CD163', 'C1QA', 'C1QB', 'CST3'],
-            'dendritic': ['FCER1A', 'IL1R2', 'CD86', 'HLA-DPB1', 'HLA-DRB1'],
-            'neutrophil': ['S100A8', 'S100A7'],
-        },
-        ('human', 'endothelial'): {
-            'arterial': ['GJA5', 'BMX', 'SEMA3G', 'VIM'],
-            'venous': ['VWF', 'MMRN2', 'CLEC14A', 'ACKR1'],
-            'lymphatic': ['LYVE1', 'PROX1', 'THY1', 'MMRN1', 'TFF3', 'TFPI'],
-            'capillary': ['SLC9A3R2', 'PLPP1', 'PECAM1', 'IGKC', 'CALD1', 'CRHBP', 'KDR'],
-            'epithelial': ['COBLL1', 'EPCAM', 'CD24'],
-            '': [
-                'JUN', 'JUND', 'SQSTM1', 'SELENOH', 'FOS', 'ACP1', 'EPB41L2',
-                'MALAT1', 'CAP1', 'FABP5P7', 'XIST', 'TGFBR2', 'SPARCL1',
-                'FCN3', 'F8'],
-            'acinar': ['PRSS2', 'ENPP2', 'GALNT15', 'APOD', 'CLPS'],
-        },
-        ('mouse', 'endothelial cell'): {
-            'arterial': ['Gja5', 'Bmx'],
-            'venous': ['Slc6a2', 'Vwf'],
-            'lymphatic': ['Ccl21a', 'Prox1', 'Thy1'],
-            'capillary': ['Rn45s', 'Slc6a6', 'Comt'],
-            'smooth muscle': [
-                'Thy1', 'Mustn1', 'Gng11', 'Mgp', 'Acta2', 'Aspn', 'Myl9'],
-            'pericyte': ['Pdgfrb', 'Cox4i2', 'Higd1b'],
-            'dendritic': ['Cd34', 'Cd300lg', 'Ly6c1', 'Ramp3'],
-            'beta': ['Iapp', 'Ins1', 'Ins2', 'Srgn', 'Syngr2', 'Tsc22d1',
-                     'Igfbp3'],
-            'alpha': ['Chga', 'Gcg'],
-            'acinar': ['Prss2', 'Try5', 'Sycn', 'Ctrb1', 'Clps', 'Ndrg1', 'Fabp4'],
-            'stellate': ['Plac9'],
-            'PP': ['Ppy'],
-        },
-        ('mouse', 'lymphocyte'): {
-            'B': ['Ms4a1', 'Cd79a', 'Cd79b', 'Cd19'],
-            'T': ['Trac', 'Cd3e', 'Cd3d', 'Cd3g'],
-            'NK': ['Gzma', 'Ncam1'],
-            'macrophage': ['C1qa', 'Cd68', 'Marco', 'Cst3'],
-            'monocyte': ['Psap', 'Cd14'],
-            'neutrophil': ['S100a8', 'S100a9', 'Stfa1', 'Stfa2'],
-            'erythrocyte': ['Beta-s', 'Alas2', 'Hbb-b2', 'Tmem14c'],
-            '': ['Snrpf'],
-        },
-        ('mouse', 'leukocyte'): {
-            'B': ['Ms4a1', 'Cd79a', 'Cd79b', 'Cd19'],
-            'T': ['Trac', 'Cd3e', 'Cd3d', 'Cd3g'],
-            'NK': ['Gzma', 'Ncam1'],
-            'macrophage': ['C1qa', 'Cd68', 'Marco', 'Cst3'],
-            'monocyte': ['Psap', 'Cd14'],
-            'neutrophil': ['S100a8', 'S100a9', 'Stfa1', 'Stfa2'],
-        },
-        ('mouselemur', 'lymphocyte'): {
-            'B': ['MS4A1', 'CD79A', 'CD79B', 'CD19'],
-            'T': ['TRAC', 'CD3E', 'CD3D', 'CD3G'],
-            'NK': ['GZMA', 'NCAM1', 'FCER1G', 'GZMK', 'KLRB1'],
-            'macrophage': ['C1QA', 'CD68', 'MARCO', 'CST3'],
-            'monocyte': ['PSAP', 'CD14'],
-            'neutrophil': ['S100A8', 'S100A9', 'STFA1', 'STFA2'],
-            'erythrocyte': ['BETA-S', 'ALAS2', 'HBB-B2', 'TMEM14C'],
-            '': ['SNRPF'],
+    if bad_prefixes is None:
+        bad_prefixes = []
 
-        },
-    }
-
-    bad_prefixes = {
-        'mouse': ['Rpl', 'Rps', 'Linc', 'Mt'],
-        'human': [
-            'RPL', 'RPS', 'LINC', 'MT', 'EPAS1', 'DYNLL1',
-            'EIF3G', 'HLA-A', 'HLA-B', 'HLA-C', 'HLA-E',
-            'GZMA', 'GNLY', 'CD74', 'KRT4', 'TYROBP'],
-        'mouselemur': [
-            'RPL', 'RPS', 'LINC', 'MT', 'EPAS1', 'DYNLL1',
-            'EIF3G', 'HLA-A', 'HLA-B', 'HLA-C', 'HLA-E',
-            'GZMA', 'GNLY', 'CD74', 'KRT4', 'TYROBP',
-            'UBA52', 'LOC1', 'MYBL2', 'MAL', 'ATP5A1', 'ARHGAP15'],
-    }
-
-    markersi = markers.get((species, annotation), None)
+    markersi = markers.get(annotation, None)
     if markersi is None:
         raise ValueError(
             f'Cannot subannotate without markers for {species}, {annotation}')
@@ -189,7 +120,11 @@ def subannotate(adata, species, annotation, verbose=True):
     sc.tl.leiden(adatam)
 
     adata.obs['subleiden'] = adatam.obs['leiden']
-    sc.tl.rank_genes_groups(adata, 'subleiden')
+    sc.tl.rank_genes_groups(
+        adata,
+        'subleiden',
+        method='t-test_overestim_var',
+    )
     top_marker = pd.DataFrame(adata.uns['rank_genes_groups']['names']).head(2)
 
     subannos = {}
@@ -199,7 +134,7 @@ def subannotate(adata, species, annotation, verbose=True):
             if found:
                 break
             found_bad_prefix = False
-            for bad_pfx in bad_prefixes[species]:
+            for bad_pfx in bad_prefixes:
                 if gene.startswith(bad_pfx):
                     found_bad_prefix = True
                     break
@@ -212,8 +147,12 @@ def subannotate(adata, species, annotation, verbose=True):
                     found = True
                     break
             else:
-                #import ipdb; ipdb.set_trace()
-                raise ValueError('Marker not found:', gene)
+                # FIXME: trash clusters with unknown markers for now
+                if not trash_unknown:
+                    import ipdb; ipdb.set_trace()
+                    raise ValueError('Marker not found:', gene)
+                else:
+                    subannos[cluster] = ''
         if not found:
             subannos[cluster] = ''
 
@@ -222,31 +161,32 @@ def subannotate(adata, species, annotation, verbose=True):
     return new_annotations
 
 
-def fix_annotations(adata, column, species, tissue, rename_dict, coarse_cell_types):
+def fix_annotations(
+    adata, column, species, tissue, rename_dict, coarse_cell_types,
+    blacklist=None, subannotation_kwargs=None,
+):
     '''Correct cell types in each tissue according to known dict'''
-    blacklist = {
-        ('mouselemur', 'Bone Marrow'): ['lymphocyte', 'type II pneumocyte'],
-        ('mouselemur', 'Heart'): ['type II pneumocyte'],
-        ('mouselemur', 'Kidney'): ['stromal cell', 'urothelial cell'],
-        ('mouselemur', 'Lung'): ['epithelial cell of uterus'],
-        ('mouselemur', 'Pancreas'): ['stromal cell', 'pancreatic endocrine cell'],
-        ('mouselemur', 'Tongue'): ['stromal cell', 'pancreatic endocrine cell'],
-        ('c_elegans', 'whole'): ['Failed QC'],
-        ('a_queenslandica', 'whole'): ['choano_to_pinaco', 'unk_1', 'unk_2'],
-        ('m_leidyi', 'whole'): [f'unk_{x}' for x in range(1, 22)],
-        ('t_adhaerens', 'whole'): [f'unk_{x}' for x in range(1, 4)],
-    }
+    if blacklist is None:
+        blacklist = {}
+    if subannotation_kwargs is None:
+        subannotation_kwargs = {}
 
     celltypes_new = np.asarray(adata.obs[column]).copy()
 
     # Exclude blacklisted
-    if (species, tissue) in blacklist:
-        for ctraw in blacklist[(species, tissue)]:
+    if tissue in blacklist:
+        for ctraw in blacklist[tissue]:
             celltypes_new[celltypes_new == ctraw] = ''
 
     # Rename according to standard dict
     for ctraw, celltype in rename_dict['cell_types'].items():
-        celltypes_new[celltypes_new == ctraw] = celltype
+        if isinstance(ctraw, str):
+            celltypes_new[celltypes_new == ctraw] = celltype
+        else:
+            # Organ-specific renames
+            organraw, ctraw = ctraw
+            if organraw == tissue:
+                celltypes_new[celltypes_new == ctraw] = celltype
 
     ct_found = np.unique(celltypes_new)
 
@@ -263,7 +203,9 @@ def fix_annotations(adata, column, species, tissue, rename_dict, coarse_cell_typ
             idx = celltypes_new == celltype
             adata_coarse_type = adata[idx]
             subannotations = subannotate(
-                adata_coarse_type, species, celltype)
+                adata_coarse_type, species, celltype,
+                **subannotation_kwargs,
+            )
 
             # Ignore reclustering into already existing types, we have enough
             for subanno in subannotations:
@@ -316,6 +258,8 @@ def collect_gene_annotations(anno_fn, genes):
             for attr in attrs:
                 if 'gene_name' in attr:
                     gene_name = attr.split(' ')[-1][1:-1]
+                elif " gene " in attr:
+                    gene_name = attr.split(' ')[-1][1:-1]
                 elif 'transcript_id' in attr:
                     transcript_id = attr.split(' ')[-1][1:-1]
                 elif 'Name=' in attr:
@@ -365,59 +309,146 @@ def store_compressed_atlas(
         fn_out,
         compressed_atlas,
         tissues,
-        gene_annos,
+        feature_annos,
         celltype_order,
+        measurement_type='gene_expression',
+        compression=22,
+        quantisation="chromatin_accessibility",
+        #chunked=True,
         ):
-    '''Store compressed atlas into h5 file'''
-    if gene_annos is not None:
-        genes = gene_annos.index.tolist()
+    '''Store compressed atlas into h5 file.
+
+    Args:
+        fn_out: The h5 file with the compressed atlas.
+        compressed_atlas: The dict with the result.
+        tissues: A list of tissues covered.
+        feature_annos: Gene annotations if available (only for gene expression).
+        celltype_order: The order of cell types.
+        measurement_type: What type of data this is (gene expression, chromatin accessibility, etc.).
+        quantisation: If not None, average measurement is quantised with these bins.
+        compression: Use zstd compression of the data arrays (avg and frac). Levels are 1-22,
+            whereas 0 or False means no compression. No performace decrease is observed.
+    '''
+    add_kwargs = {}
+
+    # Optional zstd compression using hdf5plugin
+    if compression:
+        import hdf5plugin
+        # NOTE: decompressing zstd is equally fast no matter how much compression.
+        # As for compression speed, levels 1-19 are normal, 20-22 "ultra".
+        # A quick runtime test shows *faster* access for clevel=22 than clevel=3,
+        # while the file size is around 10% smaller. Compression speed is significantly
+        # slower, but (i) still somewhat faster than actually averaging the data and
+        # (ii) compresses whole human RNA+ATAC is less than 1 minute. That's nothing
+        # considering these approximations do not change that often.
+        comp_kwargs = hdf5plugin.Zstd(clevel=compression)
+    else:
+        comp_kwargs = {}
+
+    # Data can be quantised for further compression (typically ATAC-Seq)
+    if (quantisation == True) or (quantisation == measurement_type):
+        if measurement_type == "chromatin_accessibility":
+            # NOTE: tried using quantiles for this, but they are really messy
+            # and subject to aliasing effects. 8 bits are more than enough for
+            # most biological questions given the noise in the data
+            qbits = 8
+            bins = np.array([-0.001, 1e-8] + np.logspace(-4, 0, 2**qbits - 1).tolist()[:-1] + [1.1])
+            # bin "centers", aka data quantisation
+        elif measurement_type == "gene_expression":
+            # Counts per ten thousand quantisation
+            qbits = 16
+            bins = np.array([-0.001, 1e-8] + np.logspace(-2, 4, 2**qbits - 1).tolist()[:-1] + [1.1e4])
+        else:
+            raise ValueError(f"Quantisation for {measurement_type} not set.")
+
+        quantisation = [0] + np.sqrt(bins[1:-2] * bins[2:-1]).tolist() + [1]
+
+        qbytes = qbits // 8
+        # Add a byte if the quantisation is not optimal
+        if qbits not in (8, 16, 32, 64):
+            qbytes += 1
+        avg_dtype = f"u{qbytes}"
+        quantisation = True
+    else:
+        avg_dtype = "f4"
+        quantisation = False
+
+    if feature_annos is not None:
+        features = feature_annos.index.tolist()
     else:
         for tissue, group in compressed_atlas.items():
-            genes = group['features'].tolist()
+            features = group['features'].tolist()
 
     with h5py.File(fn_out, 'a') as h5_data:
-        ge = h5_data.create_group('gene_expression')
-        ge.create_dataset('features', data=np.array(genes).astype('S'))
+        me = h5_data.create_group(measurement_type)
+        me.create_dataset('features', data=np.array(features).astype('S'))
+        if quantisation:
+            me.create_dataset('quantisation', data=np.array(quantisation).astype('f4'))
 
-        if gene_annos is not None:
-            group = ge.create_group('feature_annotations')
+        if feature_annos is not None:
+            group = me.create_group('feature_annotations')
             group.create_dataset(
-                    'gene_name', data=gene_annos.index.values.astype('S'))
-            group.create_dataset(
-                    'transcription_start_site',
-                    data=gene_annos['transcription_start_site'].values, dtype='i8')
+                    'gene_name', data=feature_annos.index.values.astype('S'))
+            if 'transcription_start_site' in feature_annos.columns:
+                group.create_dataset(
+                        'transcription_start_site',
+                        data=feature_annos['transcription_start_site'].values, dtype='i8')
             group.create_dataset(
                     'chromosome_name',
-                    data=gene_annos['chromosome_name'].astype('S'))
+                    data=feature_annos['chromosome_name'].astype('S'))
             group.create_dataset(
                     'start_position',
-                    data=gene_annos['start_position'].values, dtype='i8')
+                    data=feature_annos['start_position'].values, dtype='i8')
             group.create_dataset(
                     'end_position',
-                    data=gene_annos['end_position'].values, dtype='i8')
+                    data=feature_annos['end_position'].values, dtype='i8')
             group.create_dataset(
-                    'strand', data=gene_annos['strand'].values, dtype='i2')
+                    'strand', data=feature_annos['strand'].values, dtype='i2')
 
-        ge.create_dataset('tissues', data=np.array(tissues).astype('S'))
-        supergroup = ge.create_group('by_tissue')
+        me.create_dataset('tissues', data=np.array(tissues).astype('S'))
+        supergroup = me.create_group('by_tissue')
         for tissue in tissues:
             tgroup = supergroup.create_group(tissue)
-            for label in ['celltype', 'celltype_dataset_timepoint']:
-                avg_ge = compressed_atlas[tissue][label]['avg']
-                frac_ge = compressed_atlas[tissue][label]['frac']
-                ncells_ge = compressed_atlas[tissue][label]['ncells']
+            #for label in ['celltype', 'celltype_dataset_timepoint']:
+            for label in ['celltype']:
+                ncells = compressed_atlas[tissue][label]['ncells']
+                avg = compressed_atlas[tissue][label]['avg']
+                if quantisation:
+                    # pd.cut wants one dimensional arrays so we ravel -> cut -> reshape
+                    avg_vals = (pd.cut(avg.values.ravel(), bins=bins, labels=False)
+                                .reshape(avg.shape)
+                                .astype(avg_dtype))
+                    avg = pd.DataFrame(
+                        avg_vals, columns=avg.columns, index=avg.index,
+                    )
+
+                # TODO: manual chunking might increase performance a bit, the data is
+                # typically accessed only vertically (each feature its own island)
+                #if chunked:
+                #    # Chunk each feature on its own: this is perfect for ATAC-Seq 
+                #    add_kwargs['chunks'] = (1, len(features))
 
                 group = tgroup.create_group(label)
+                # Cell types
                 group.create_dataset(
-                        'index', data=avg_ge.columns.values.astype('S'))
+                        'index', data=avg.columns.values.astype('S'))
                 group.create_dataset(
-                        'average', data=avg_ge.T.values, dtype='f4')
+                    'average', data=avg.T.values, dtype=avg_dtype,
+                    **add_kwargs,
+                    **comp_kwargs,
+                )
                 group.create_dataset(
-                        'fraction', data=frac_ge.T.values, dtype='f4')
-                group.create_dataset(
-                        'cell_count', data=ncells_ge.values, dtype='i8')
+                    'cell_count', data=ncells.values, dtype='i8')
 
-        ct_group = ge.create_group('celltypes')
+                if measurement_type == 'gene_expression':
+                    frac = compressed_atlas[tissue][label]['frac']
+                    group.create_dataset(
+                        'fraction', data=frac.T.values, dtype='f4',
+                        **add_kwargs,
+                        **comp_kwargs,
+                    )
+
+        ct_group = me.create_group('celltypes')
         supertypes = np.array([x[0] for x in celltype_order])
         ct_group.create_dataset(
                 'supertypes',

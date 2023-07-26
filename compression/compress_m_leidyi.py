@@ -29,7 +29,7 @@ from utils import (
 
 species = 'm_leidyi'
 dataset_name = 'SebePedros'
-atlas_data_folder = root_repo_folder / 'data' / 'full_atlases' / 'a_queenslandica' / 'Single_cell_datasets' / 'Mnemiopsis'
+atlas_data_folder = root_repo_folder / 'data' / 'full_atlases' / 'RNA' / 'a_queenslandica' / 'Single_cell_datasets' / 'Mnemiopsis'
 # There cannot be an annotation yet since the transcriptome was assembled here
 #anno_fn = root_repo_folder / 'data' / 'gene_annotations' / 'c_elegans.PRJNA13758.WS287.annotations.gff3.gz'
 fn_out = output_folder / f'{species}.h5'
@@ -42,6 +42,10 @@ rename_dict = {
         'striated': 'striated muscle',
         'smooth': 'smooth muscle',
     },
+}
+
+celltype_tissue_blacklist = {
+    'whole': [f'unk_{x}' for x in range(1, 22)],
 }
 
 coarse_cell_types = [
@@ -104,6 +108,7 @@ if __name__ == '__main__':
         adata_tissue.obs['cellType'] = fix_annotations(
             adata_tissue, 'cell_type', species, tissue,
             rename_dict, coarse_cell_types,
+            blacklist=celltype_tissue_blacklist,
         )
 
         # Age

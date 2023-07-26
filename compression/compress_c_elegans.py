@@ -28,7 +28,7 @@ from utils import (
 
 
 species = 'c_elegans'
-atlas_data_folder = root_repo_folder / 'data' / 'full_atlases' / 'c_elegans'
+atlas_data_folder = root_repo_folder / 'data' / 'full_atlases' / 'RNA' / 'c_elegans'
 anno_fn = root_repo_folder / 'data' / 'gene_annotations' / 'c_elegans.PRJNA13758.WS287.annotations.gff3.gz'
 fn_out = output_folder / f'{species}.h5'
 
@@ -37,8 +37,8 @@ rename_dict = {
     'cell_types': {
         'Unclassified glia': 'glia',
         'gABAergic neurons': 'GABAergic neuron',
-        'am/PH sheath cells': 'am/PH sheath',
-        'pharyngeal epithelia': 'pharingeal epi',
+        'am/ph sheath cells': 'sheath',
+        'pharyngeal epithelia': 'pharyngeal epi',
         'distal tip cells': 'distal tip',
         'socket cells': 'socket',
         'excretory cells': 'excretory',
@@ -57,7 +57,13 @@ rename_dict = {
         'coelomocytes': 'coelomocyte',
         'seam cells': 'seam',
         'sex myoblasts': 'sex myoblast',
+        'gabaergic neurons': 'GABAergic neuron',
+        'unclassified glia': 'glia',
     },
+}
+
+celltype_tissue_blacklist = {
+    'whole': ['Failed QC', 'failed qc'],
 }
 
 coarse_cell_types = [
@@ -82,7 +88,7 @@ celltype_order = [
         'pharyngeal muscle',
         'intestinal/rectal muscle',
         'sex myoblast',
-        'am/PH sheath',
+        'sheath',
         'socket',
         'pharyngeal gland',
         'excretory',
@@ -141,6 +147,7 @@ if __name__ == '__main__':
         adata_tissue.obs['cellType'] = fix_annotations(
             adata_tissue, 'cell.type', 'c_elegans', tissue,
             rename_dict, coarse_cell_types,
+            blacklist=celltype_tissue_blacklist,
         )
 
         # Age

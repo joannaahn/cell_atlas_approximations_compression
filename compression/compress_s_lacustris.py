@@ -28,7 +28,7 @@ from utils import (
 
 
 species = 's_lacustris'
-atlas_data_folder = root_repo_folder / 'data' / 'full_atlases' / 's_lacustris'
+atlas_data_folder = root_repo_folder / 'data' / 'full_atlases' / 'RNA' / 's_lacustris'
 # There cannot be an annotation yet since the transcriptome was assembled here
 #anno_fn = root_repo_folder / 'data' / 'gene_annotations' / 'c_elegans.PRJNA13758.WS287.annotations.gff3.gz'
 fn_out = output_folder / f'{species}.h5'
