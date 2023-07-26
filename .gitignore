@@ -1,3 +1,5 @@
+.DS_Store
+
 # want to ignore all the h5ad file
 *.mtx.gz
 *.h5ad.part
