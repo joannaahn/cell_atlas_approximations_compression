@@ -19,19 +19,15 @@ if not output_folder.is_dir():
 
 
 def get_tissue_data_dict(species, atlas_folder, rename_dict=None):
-    '''Get a dictionary with tissue order and files'''
+    
     result = []
 
     fns = os.listdir(atlas_folder)
-  
-    if species == "m_fascicularis":
-        fns = [x for x in fns if x.startswith('Matrix_')]
-    else:
-        fns = [x for x in fns if x.endswith('.h5ad')]
+    fns = [x for x in fns if x.endswith('.h5ad')]
  
     for filename in fns:
         if species == 'mouse':
-            tissue = filename.split('-')[-1].split('.')[0]
+            tissue = filename.split('_')[-1].split('.')[0]
         elif species == 'human':
             tissue = filename[3:-5]
         elif species == 'lemur':
@@ -39,7 +35,7 @@ def get_tissue_data_dict(species, atlas_folder, rename_dict=None):
         elif species in ('c_elegans', 'd_rerio', 's_lacustris',
                          'a_queenslandica', 'm_leidyi', 't_adhaerens'):
             tissue = 'whole'
-        elif species == "m_fascicularis":
+        elif species == "d.melanogaster":
             tissue = filename.split('_')[1].split('.')[0]
         else:
             raise ValueError('species not found: {:}'.format(species))
@@ -47,7 +43,7 @@ def get_tissue_data_dict(species, atlas_folder, rename_dict=None):
         if rename_dict is not None:
             tissue = rename_dict['tissues'].get(tissue, tissue)
             
-        if species == "m_fascicularis":
+        if species == "d.melanogaster":
             result.append({
                 'tissue': tissue,
                 'filename_count': filename,
@@ -58,9 +54,16 @@ def get_tissue_data_dict(species, atlas_folder, rename_dict=None):
                 'tissue': tissue,
                 'filename': atlas_folder / filename,
             })
-
+    
+    # [{'tissue': 'Tissue', 
+    # 'filename_count': 'ALL_Tissue_Global_Clustering_Scanpy.h5ad', 
+    # 'filename_meta': 'ALL_Tissue_Global_Clustering_Scanpy.h'}
+    # ]
+    print(result)
+    # assigning new value to result
     result = pd.DataFrame(result).set_index('tissue')
-    if species != "m_fascicularis":
+    
+    if species != "d.melanogaster":
         result = result['filename']
 
     # Order tissues alphabetically
