@@ -257,6 +257,8 @@ def collect_gene_annotations(anno_fn, genes):
                     gene_name = attr.split(' ')[-1][1:-1]
                 elif " gene " in attr:
                     gene_name = attr.split(' ')[-1][1:-1]
+                elif "ID=gene:" in attr:
+                    gene_name = attr.split(';')[0].split(':')[-1]
                 elif 'transcript_id' in attr:
                     transcript_id = attr.split(' ')[-1][1:-1]
                 elif 'Name=' in attr:
