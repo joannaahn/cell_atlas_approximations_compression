@@ -45,6 +45,7 @@ rename_dict = {
         'Neural_33': 'neuron',
         'Neural_KK7': 'neuron',
         'Muscle': 'striated muscle',
+        'Muscle progenitors': 'muscle progenitor',
         'Flame cells': 'flame',
         'Intestine': 'gastrodermal',
         'Neoblast': 'pluripotent',
@@ -84,7 +85,7 @@ celltype_order = [
     ('endothelial', [
     ]),
     ('mesenchymal', [
-        'muscle progenitors',
+        'muscle progenitor',
         'striated muscle',
         'parenchymal progenitor',
         'parenchymal',

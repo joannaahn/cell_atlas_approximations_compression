@@ -363,7 +363,7 @@ def store_compressed_atlas(
         else:
             raise ValueError(f"Quantisation for {measurement_type} not set.")
 
-        quantisation = [0] + np.sqrt(bins[1:-2] * bins[2:-1]).tolist() + [1]
+        quantisation_array = [0] + np.sqrt(bins[1:-2] * bins[2:-1]).tolist() + [1]
 
         qbytes = qbits // 8
         # Add a byte if the quantisation is not optimal
@@ -385,7 +385,7 @@ def store_compressed_atlas(
         me = h5_data.create_group(measurement_type)
         me.create_dataset('features', data=np.array(features).astype('S'))
         if quantisation:
-            me.create_dataset('quantisation', data=np.array(quantisation).astype('f4'))
+            me.create_dataset('quantisation', data=np.array(quantisation_array).astype('f4'))
 
         if feature_annos is not None:
             group = me.create_group('feature_annotations')

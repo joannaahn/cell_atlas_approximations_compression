@@ -37,12 +37,12 @@ fn_out = output_folder / f'{species}.h5'
 # TODO
 rename_dict = {
     'cell_types': {
-        'choanocytes_1': 'choanocytes',
-        'choanocytes_2': 'choanocytes',
-        'archaeo_1': 'archaeocytes',
-        'archaeo_2': 'archaeocytes',
-        'pinaco_1': 'pinacocytes',
-        'pinaco_2': 'pinacocytes',
+        'choanocytes_1': 'choanocyte',
+        'choanocytes_2': 'choanocyte',
+        'archaeo_1': 'archaeocyte',
+        'archaeo_2': 'archaeocyte',
+        'pinaco_1': 'pinacocyte',
+        'pinaco_2': 'pinacocyte',
     },
 }
 
@@ -59,13 +59,13 @@ celltype_order = [
         'bactericidal',
     ]),
     ('epithelial', [
-        'choanocytes',
-        'pinacocytes',
+        'choanocyte',
+        'pinacocyte',
     ]),
     ('endothelial', [
     ]),
     ('mesenchymal', [
-        'archaeocytes',
+        'archaeocyte',
         'collagen',
         'aspcinzin',
     ]),

@@ -22,11 +22,16 @@ To answer these questions, we construct approximations from all kinds of cell at
 | mus musculus | Bone marrow, heart, kidney, colon, pancreas, lung, tongue | https://www.nature.com/articles/s41586-020-2496-1 |
 | microcebus myoxinus | Bone marrow, heart, kidney, colon, pancreas, lung, tongue | https://www.biorxiv.org/content/10.1101/2021.12.12.469460v2 |
 | caenorhabditis elegans | whole organism | https://www.science.org/doi/10.1126/science.aam8940 |
+| drosophila melanogaster | Antenna, haltere, heart, intestines, leg, male reproductive glands, malpighian tubule, oenocyte, ovary, proboscis, skin, testis, trachea, wing | https://doi.org/10.1126/science.abk2432 |
 | danio rerio | whole embryo | https://www.science.org/doi/10.1126/science.aar4362 |
+| hofstenia miamia | whole organism | https://www.nature.com/articles/s41467-023-38016-4 |
+| schmidtea mediterraea | whole organism | https://www.science.org/doi/10.1126/science.aaq1736 |
+| schistosoma mansoni | whole organism | https://www.nature.com/articles/s41467-020-20794-w |
 | spongilla lacustris | whole organism | https://www.science.org/doi/10.1126/science.abj2949 |
 | amphimedon queenslandica | whole organism | https://www.nature.com/articles/s41559-018-0575-6 |
 | mnemiopsis leidy | whole organism | https://www.nature.com/articles/s41559-018-0575-6 |
 | trichoplax adhaerens | whole organism | https://www.nature.com/articles/s41559-018-0575-6 |
+| xenopus laevis | Bladder, bone marrow, brain, eye, heart, intestine, kidney, liver, lung, muscle, ovary, oviduct, pancreas, skin, spleen, stomach, testis | https://www.nature.com/articles/s41467-022-31949-2 |
 
 
 ## Proposing a new atlas approximation

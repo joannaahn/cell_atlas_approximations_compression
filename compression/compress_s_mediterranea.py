@@ -50,6 +50,7 @@ rename_dict = {
         'neoblast 13': 'pluripotent',
         'neoblast 12': 'neural progenitor',
         'neural progenitors': 'neural progenitor',
+        'muscle progenitors': 'muscle progenitor',
         'pharynx cell type': 'pharyngeal',  # some kind of epi it seems
         'pharynx cell type progenitors': 'pharyngeal progenitor',  # some kind of epi it seems
         'epidermis': 'epidermal',
@@ -63,7 +64,7 @@ rename_dict = {
         'cav-1+ neurons': 'neuron',
         'npp-18+ neurons': 'neuron',
         'spp-11+ neurons': 'neuron',
-        'phagocytes': 'macrophage',
+        'phagocytes': 'phagocyte',
         'glia': 'glial',
         'protonephridia': 'flame',
         'goblet cells': 'goblet',
@@ -77,7 +78,7 @@ rename_dict = {
         'ldlrr-1+ parenchymal cells': 'parenchymal progenitor',
         'pgrn+ parenchymal cells': 'parenchymal progenitor',
         'psap+ parenchymal cells': 'psap+ parenchymal',
-        'gut progenitors': 'macrophage progenitor',
+        'gut progenitors': 'phagocyte progenitor',
         'psd+ cells': 'psd+ support',  # human: neurons, bladder muscle, or endometrium fibros (?)
         'secretory 1': 'secretory',
         'secretory 2': 'secretory',
@@ -108,8 +109,8 @@ coarse_cell_types = [
 
 celltype_order = [
     ('immune', [
-        'macrophage',
-        'macrophage progenitor',
+        'phagocyte',
+        'phagocyte progenitor',
         'glial',
     ]),
     ('epithelial', [
@@ -125,7 +126,7 @@ celltype_order = [
     ]),
     ('mesenchymal', [
         #'digestive',
-        'muscle progenitors',
+        'muscle progenitor',
         'striated muscle',
         #'smooth muscle',
         'pigment',
@@ -150,12 +151,6 @@ celltype_order = [
 
 if __name__ == '__main__':
 
-    # Remove existing compressed atlas file if present
-    if os.path.isfile(fn_out):
-        os.remove(fn_out)
-
-    compressed_atlas = {}
-
     adata = anndata.read(
        atlas_data_folder / 's_mediterranea_with_cell_and_transcript_annotations.h5ad',
     )
@@ -170,7 +165,13 @@ if __name__ == '__main__':
     # Set tissue
     adata.obs['tissue'] = 'whole'
 
+    # Set embedding data structures as needed
+    emb_name = 'tsne'
+    emb_cols = ['tSNE1', 'tSNE2']
+    adata.obsm['X_tsne'] = adata.obs[emb_cols].values
+
     tissues = adata.obs['tissue'].value_counts().index
+    compressed_atlas = {}
     for it, tissue in enumerate(tissues):
         print(tissue)
         adata_tissue = adata[adata.obs['tissue'] == tissue]
@@ -207,6 +208,89 @@ if __name__ == '__main__':
             adata_tissue.obs['cellType'].value_counts().index,
             celltype_order,
         )
+
+        if False:
+            print('Plot embedding')
+            import matplotlib.pyplot as plt
+            emb_fun = getattr(sc.pl, emb_name)
+            fig, ax = plt.subplots(figsize=(14, 10))
+            emb_fun(adata_tissue, color='cellType', show=False, ax=ax)
+            # Draw wedges
+            xy = adata_tissue.obsm[f'X_{emb_name}'].copy()
+            xym = xy.mean(axis=0)
+            xyc = xy - xym
+            rho = np.sqrt((xyc**2).sum(axis=1))
+            phi = np.arctan2(*(xyc.T[::-1]))
+            nrho = 6
+            nphi = 50
+            rhobins = np.linspace(0, rho.max(), nrho)
+            rhobins = np.insert(rhobins, 1, rhobins[1] / 3)
+            phibins = np.linspace(0, 360, nphi)
+            for rhoi in rhobins[1:]:
+                ax.add_patch(plt.Circle(xym, rhoi, lw=2, ls='--', fc='none', ec='k', alpha=0.3))
+            for phii in phibins:
+                ax.add_line(plt.Line2D(
+                    xym[0] + np.cos(np.pi / 180 * phii) * np.array([rhobins[1], rhobins[-1]]),
+                    xym[1] + np.sin(np.pi / 180 * phii) * np.array([rhobins[1], rhobins[-1]]),
+                    lw=2, color='k', alpha=0.3, ls='--',
+                    ))
+            fig.tight_layout()
+            plt.ion(); plt.show()
+
+        if False:
+            import matplotlib.pyplot as plt
+            from scipy.spatial import Voronoi, voronoi_plot_2d
+            emb_fun = getattr(sc.pl, emb_name)
+            cell_network = {}
+            for celltype in adata_tissue.obs['cellType'].unique():
+                adatai = adata_tissue[adata_tissue.obs['cellType'] == celltype]
+                idx = []
+                ds = []
+                if len(adatai) < 5:
+                    idx = list(range(adatai.shape[0]))
+                else:
+                    xyi = adatai.obsm[f'X_{emb_name}'].copy()
+                    avail = np.ones(len(xyi), bool)
+                    # Central cell 
+                    xyim = xyi.mean(axis=0)
+                    di = np.sqrt(((xyi - xyim)**2).sum(axis=1))
+                    idx.append(np.argmin(di))
+                    avail[idx[-1]] = False
+                    # Exclude outliers
+                    avail[di > np.percentile(di, 95)] = False
+                    # Largest distance from current cell
+                    xyim = xyi[idx[-1]]
+                    di = np.sqrt(((xyi - xyim)**2).sum(axis=1))
+                    di[~avail] = 1e-10
+                    ds.append(di)
+                    idx.append(np.argmax(di))
+                    avail[idx[-1]] = False
+                    # Largest joint distance
+                    for j in range(10):
+                        xyim = xyi[idx[-1]]
+                        di = np.sqrt(((xyi - xyim)**2).sum(axis=1))
+                        ds = np.vstack([ds, di])
+                        ds[:, ~avail] = 1e-10
+                        if avail.sum() == 0:
+                            break
+                        idx.append(np.log(ds).sum(axis=0).argmax())
+                        avail[idx[-1]] = False
+                cell_network[celltype] = adatai.obs_names[idx]
+            skeleton = sum((list(x) for x in cell_network.values()), [])
+            fig, ax = plt.subplots(figsize=(14, 10))
+            emb_fun(adata_tissue, color='cellType', show=False, ax=ax, alpha=0.2)
+            emb_fun(adata_tissue[skeleton], color='cellType', show=False, ax=ax, size=80)
+            color_dict = dict(zip(adata_tissue.obs['cellType'].cat.categories, adata_tissue.uns['cellType_colors']))
+            for celltype in adata_tissue.obs['cellType'].unique():
+                adatask = adata_tissue[cell_network[celltype]]
+                xyi = adatask.obsm[f'X_{emb_name}']
+                voi = Voronoi(xyi)
+                ax.add_patch(plt.Polygon(voi.vertices, closed=True, lw=2, fc='none', ec=color_dict[celltype]))
+                #voronoi_plot_2d(voi, ax=ax, show_points=False, show_vertices=False)
+            fig.tight_layout()
+            plt.ion(); plt.show()
+
+            sys.exit()
 
         print('Add data to celltype group')
         genes = adata_tissue.var_names
@@ -259,6 +343,10 @@ if __name__ == '__main__':
                   .get_level_values(3))
     # FIXME: is this vaguely correct??
     gene_annos['gene_name'] = gene_annos.index
+
+    # Remove existing compressed atlas file if present
+    if os.path.isfile(fn_out):
+        os.remove(fn_out)
 
     print('Store compressed atlas to file')
     store_compressed_atlas(
