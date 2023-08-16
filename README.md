@@ -12,7 +12,7 @@ This project enables biologists, doctors, and data scientist to quickly find ans
 
 To answer these questions, we construct approximations from all kinds of cell atlases using the code in this repo.
 
-**NOTE:** At this stage, this repo is designed for internal use and made public for transparency. End users are expected to interact with the atlas approximations using the [API](https://atlasapprox.readthedocs.io) or - when we are done building it - the web interface.
+**NOTE:** At this stage, this repo is designed for internal use and made public for transparency. End users are expected to interact with the atlas approximations using the [web interface](https://atlasapprox.org) or the [API](https://atlasapprox.readthedocs.io).
 
 ## Available approximations
 
