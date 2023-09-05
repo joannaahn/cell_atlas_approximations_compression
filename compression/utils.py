@@ -262,6 +262,9 @@ def collect_gene_annotations(anno_fn, genes):
                     gene_name = attr.split(' ')[-1][1:-1]
                 elif "ID=gene:" in attr:
                     gene_name = attr.split(';')[0].split(':')[-1]
+                # for drosophila, flybase uses "gene_symbol"
+                elif 'gene_symbol' in attr:
+                    gene_name = attr.split(" ")[-1][1:-1]
                 elif 'transcript_id' in attr:
                     transcript_id = attr.split(' ')[-1][1:-1]
                 elif 'Name=' in attr:
