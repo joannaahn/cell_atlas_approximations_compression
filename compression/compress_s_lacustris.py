@@ -24,6 +24,7 @@ from utils import (
     get_celltype_order,
     collect_gene_annotations,
     store_compressed_atlas,
+    sanitise_gene_names,
     )
 
 
@@ -203,8 +204,10 @@ if __name__ == '__main__':
                 frac_ge_tp[label] = np.asarray((Xct_age > 0).mean(axis=0))[0]
                 ncells_ge_tp[label] = len(idx_age)
 
+        genes = sanitise_gene_names(genes)
+
         compressed_atlas[tissue] = {
-            'features': genes,
+            'features': np.asarray(genes),
             'celltype': {
                 'avg': avg_ge,
                 'frac': frac_ge,

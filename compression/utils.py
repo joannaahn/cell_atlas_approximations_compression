@@ -464,3 +464,16 @@ def store_compressed_atlas(
                 supertype,
                 data=np.array(subtypes).astype('S'),
             )
+
+
+def sanitise_gene_names(genes):
+    genes_new = []
+    for gene in genes:
+        gene_new = gene.replace(',', ';')
+        gene_new = gene_new.split(' ')[0]
+        genes_new.append(gene_new)
+
+    if len(set(genes_new)) != len(set(genes)):
+        raise ValueError("Gene names are not unique after sanitisation.")
+
+    return genes_new
