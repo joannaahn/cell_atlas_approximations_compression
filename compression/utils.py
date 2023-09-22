@@ -3,6 +3,7 @@ Utility functions for the compression
 '''
 import os
 import pathlib
+import yaml
 import gzip
 import numpy as np
 import pandas as pd
@@ -16,6 +17,52 @@ root_repo_folder = pathlib.Path(__file__).parent.parent
 output_folder = root_repo_folder / '..' / 'cell_atlas_approximations_API' / 'web' / 'static' / 'atlas_data'
 if not output_folder.is_dir():
     output_folder = root_repo_folder / 'data' / 'atlas_approximations'
+
+
+def load_config(species):
+    config_path = pathlib.Path(__file__).parent / "organism_configs" / (species + ".yml")
+    with open(config_path) as f:
+        config = yaml.safe_load(f)
+
+    # Default to RNA-Seq
+    if "measurement_types" not in config:
+        config = {
+            "measurement_types": ["RNA"],
+            "RNA": config,
+        }
+
+    for mt in config["measurement_types"]:
+        config_mt = config[mt]
+
+        # FIXME: what if each tissue is a file?
+        if "path" not in config_mt:
+            config_mt["path"] = species + '.h5ad'
+        config_mt["path"] = root_repo_folder / 'data' / 'full_atlases' / mt / species / config_mt["path"]
+
+        if "tissues" not in config_mt:
+            config_mt["tissues"] = ["whole"]
+
+        if "coarse_cell_types" not in config_mt["cell_annotations"]:
+            config_mt["cell_annotations"]["coarse_cell_types"] = []
+
+        celltype_order = []
+        for supertype in config_mt["cell_annotations"]["supertype_order"]:
+            ct_order_supertype = (
+                supertype, config_mt["cell_annotations"]["cell_supertypes"][supertype],
+            )
+            celltype_order.append(ct_order_supertype)
+        config_mt["cell_annotations"]["celltype_order"] = celltype_order
+
+        del config_mt["cell_annotations"]["supertype_order"]
+        del config_mt["cell_annotations"]["cell_supertypes"]
+
+        if "feature_annotation" not in config_mt:
+            config_mt["feature_annotation"] = False
+        else:
+            # FIXME
+            config_mt["feature_annotation"] = root_repo_folder / 'data' / 'gene_annotations' / config_mt["feature_annotation"]
+
+    return config
 
 
 def get_tissue_data_dict(species, atlas_folder, rename_dict=None):
@@ -166,12 +213,19 @@ def fix_annotations(
     blacklist=None, subannotation_kwargs=None,
 ):
     '''Correct cell types in each tissue according to known dict'''
+    # Ignore cells with NaN in the cell.type column
+    idx = adata.obs[column].isin(
+            adata.obs[column].value_counts().index)
+    adata= adata[idx]
+
+    adata.obs[column + '_lowercase'] = adata.obs[column].str.lower()
+
     if blacklist is None:
         blacklist = {}
     if subannotation_kwargs is None:
         subannotation_kwargs = {}
 
-    celltypes_new = np.asarray(adata.obs[column]).copy()
+    celltypes_new = np.asarray(adata.obs[column + '_lowercase']).copy()
 
     # Exclude blacklisted
     if tissue in blacklist:
@@ -215,7 +269,16 @@ def fix_annotations(
 
             celltypes_new[idx] = subannotations
 
-    return celltypes_new
+
+    adata.obs['cellType'] = celltypes_new
+
+    # Correction might declare some cells as untyped/low quality
+    # they have an empty string instead of an actual annotation
+    if (adata.obs['cellType'] == '').sum() > 0:
+        idx = adata.obs['cellType'] != ''
+        adata= adata[idx]
+
+    return adata
 
 
 def get_celltype_order(celltypes_unordered, celltype_order):
@@ -242,6 +305,9 @@ def get_celltype_order(celltypes_unordered, celltype_order):
 
 def collect_gene_annotations(anno_fn, genes):
     '''Collect gene annotations from GTF file'''
+    if anno_fn is False:
+        return None
+
     featype = 'gene'
 
     with gzip.open(anno_fn, 'rt') as gtf:
@@ -309,6 +375,12 @@ def collect_gene_annotations(anno_fn, genes):
     gene_annos['strand'] = gene_annos['strand'].astype('i2')
 
     return gene_annos
+
+
+def collect_feature_annotations(anno_fn, features, measurement_type="gene_expression"):
+    if measurement_type == "gene_expression":
+        return collect_gene_annotations(anno_fn, features)
+    return None
 
 
 def store_compressed_atlas(
@@ -478,3 +550,70 @@ def sanitise_gene_names(genes):
         raise ValueError("Gene names are not unique after sanitisation.")
 
     return genes_new
+
+
+def normalise_counts(adata_tissue, input_normalisation, measurement_type="gene_expression"):
+    """Normalise counts no matter what the input normalisation is."""
+    if measurement_type == "gene_expression":
+        if input_normalisation == "cptt":
+            return adata_tissue
+
+        if input_normalisation in ("cpm+log"):
+            adata_tissue.X = np.expm1(adata_tissue.X)
+
+        if input_normalisation in ("raw", "cpm", "cpm+log"):
+            sc.pp.normalize_total(
+                adata_tissue,
+                target_sum=1e4,
+                key_added='coverage',
+            )
+        else:
+            raise ValueError("Input normalisation not recognised: {input_normalisation}")
+
+        return adata_tissue
+
+        
+
+
+
+def compress_tissue(adata_tissue, celltype_order, measurement_type="gene_expression"):
+    """Compress atlas for one tissue after data is clean, normalised, and reannotated."""
+    celltypes = get_celltype_order(
+        adata_tissue.obs['cellType'].value_counts().index,
+        celltype_order,
+    )
+
+    genes = adata_tissue.var_names
+    avg_ge = pd.DataFrame(
+            np.zeros((len(genes), len(celltypes)), np.float32),
+            index=genes,
+            columns=celltypes,
+            )
+    if measurement_type == "gene_expression":
+        frac_ge = pd.DataFrame(
+                np.zeros((len(genes), len(celltypes)), np.float32),
+                index=genes,
+                columns=celltypes,
+                )
+    ncells_ge = pd.Series(
+            np.zeros(len(celltypes), np.int64), index=celltypes,
+            )
+    for celltype in celltypes:
+        idx = adata_tissue.obs['cellType'] == celltype
+        Xidx = adata_tissue[idx].X
+        avg_ge[celltype] = np.asarray(Xidx.mean(axis=0))[0]
+        if measurement_type == "gene_expression":
+            frac_ge[celltype] = np.asarray((Xidx > 0).mean(axis=0))[0]
+        ncells_ge[celltype] = idx.sum()
+
+    result = {
+        'features': genes,
+        'celltype': {
+            'avg': avg_ge,
+            'ncells': ncells_ge,
+        },
+    }
+    if measurement_type == "gene_expression":
+        result['celltype']['frac'] = frac_ge
+
+    return result
