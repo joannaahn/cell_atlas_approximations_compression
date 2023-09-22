@@ -179,14 +179,15 @@ def fix_annotations(
             celltypes_new[celltypes_new == ctraw] = ''
 
     # Rename according to standard dict
-    for ctraw, celltype in rename_dict['cell_types'].items():
-        if isinstance(ctraw, str):
-            celltypes_new[celltypes_new == ctraw] = celltype
-        else:
-            # Organ-specific renames
-            organraw, ctraw = ctraw
-            if organraw == tissue:
+    if 'cell_types' in rename_dict:
+        for ctraw, celltype in rename_dict['cell_types'].items():
+            if isinstance(ctraw, str):
                 celltypes_new[celltypes_new == ctraw] = celltype
+            else:
+                # Organ-specific renames
+                organraw, ctraw = ctraw
+                if organraw == tissue:
+                    celltypes_new[celltypes_new == ctraw] = celltype
 
     ct_found = np.unique(celltypes_new)
 
