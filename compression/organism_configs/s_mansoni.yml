@@ -1,0 +1,54 @@
+path: "juvenile.h5ad"
+
+normalisation: "to-raw"
+
+cell_annotations:
+  column: "tissue"
+
+  rename_dict:
+    cell_types:
+      'neural': 'neuron'
+      'neural_33': 'neuron'
+      'neural_kk7': 'neuron'
+      'muscle': 'striated muscle'
+      'muscle progenitors': 'muscle progenitor'
+      'flame cells': 'flame'
+      'intestine': 'gastrodermal'
+      'neoblast': 'pluripotent'
+      'parapharyngeal': 'pharyngeal'
+      'gland': 'esophageal gland'
+      'epidermal_calp1': 'tegumental'
+      'epidermal_calp2': 'tegumental'
+      'cathepsin': 'parenchymal'
+      'epidermal_prog1': 'epidermal'
+      'epidermal_prog2': 'epidermal'
+      'epidermal_prog3': 'epidermal'
+      'epidermal_agat3': 'epidermal'
+
+  cell_supertypes:
+    'epithelial': [
+      'epidermal',
+      'pharyngeal',
+      'esophageal gland',
+      'gastrodermal',
+      'tegumental',
+      'flame',
+    ]
+
+    'mesenchymal': [
+      'muscle progenitor',
+      'striated muscle',
+      'parenchymal progenitor',
+      'parenchymal',
+    ]
+
+    'other': [
+      'neuron',
+      'pluripotent',
+    ]
+
+  supertype_order: [
+    "epithelial",
+    "mesenchymal",
+    "other",
+  ]

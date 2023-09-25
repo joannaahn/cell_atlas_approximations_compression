@@ -191,7 +191,7 @@ if __name__ == '__main__':
 
         # Fix cell type annotations
         adata_tissue.obs['cellType'] = fix_annotations(
-            adata_tissue, 'CellType', 'c_elegans', tissue,
+            adata_tissue, 'CellType', species, tissue,
             rename_dict, coarse_cell_types,
         )
 

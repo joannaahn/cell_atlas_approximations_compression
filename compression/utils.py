@@ -56,6 +56,9 @@ def load_config(species):
         del config_mt["cell_annotations"]["supertype_order"]
         del config_mt["cell_annotations"]["cell_supertypes"]
 
+        if "blacklist" not in config_mt["cell_annotations"]:
+            config_mt["cell_annotations"]["blacklist"] = {t: [] for t in config_mt["tissues"]}
+
         if "feature_annotation" not in config_mt:
             config_mt["feature_annotation"] = False
         else:
@@ -558,10 +561,13 @@ def normalise_counts(adata_tissue, input_normalisation, measurement_type="gene_e
         if input_normalisation == "cptt":
             return adata_tissue
 
-        if input_normalisation in ("cpm+log"):
+        if input_normalisation in ("to-raw",):
+            adata_tissue = adata_tissue.raw.to_adata()
+
+        if input_normalisation in ("cpm+log",):
             adata_tissue.X = np.expm1(adata_tissue.X)
 
-        if input_normalisation in ("raw", "cpm", "cpm+log"):
+        if input_normalisation in ("raw", "cpm", "cpm+log", "to-raw"):
             sc.pp.normalize_total(
                 adata_tissue,
                 target_sum=1e4,

@@ -33,8 +33,26 @@ from utils import (
 if __name__ == '__main__':
 
     species_list = [
-        'i_pulchra',
+        # Single-organ species
+        'l_minuta',
+        'h_miamia',
+        'a_queenslandica',
         'c_elegans',
+        'i_pulchra',
+        'a_queenslandica',
+        'd_rerio',
+        't_adhaerens',
+        's_mediterranea',
+        's_mansoni',
+        's_lacustris',
+        'm_leidyi',
+
+        # Multi-organ species
+        'h_sapiens',
+        'm_musculus',
+        'm_myoxinus',
+        'd_melanogaster',
+        'x_laevis',
     ]
 
     for species in species_list:

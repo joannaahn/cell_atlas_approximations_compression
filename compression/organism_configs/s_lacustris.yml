@@ -1,0 +1,64 @@
+path: "s_lacustris_Musser_et_al_2020.h5ad"
+
+normalisation: raw
+
+tissues: ["whole"]
+
+cell_annotations:
+  column: "cell_type"
+
+  rename_dict:
+    cell_types:
+      'myopeptidocytes1': 'myopeptidocyte'
+      'myopeptidocytes2': 'myopeptidocyte'
+      'mesocytes 1': 'mesocyte'
+      'mesocytes 2': 'mesocyte'
+      'mesocytes 3': 'mesocyte'
+      'metabolocytes1': 'metabolocyte'
+      'metabolocytes2': 'metabolocyte'
+      'choanoblasts1': 'choanoblast'
+      'choanoblasts2': 'choanoblast'
+      'incurrent pinacocytes1': 'incurrent pinacocyte'
+      'incurrent pinacocytes2': 'incurrent pinacocyte'
+      'apendopinacocytes1': 'apendopinacocyte'
+      'apendopinacocytes2': 'apendopinacocyte'
+      'archaeocytes': 'archaeocyte'
+      'choanocytes': 'choanocyte'
+      'apopylar cells': 'apopylar'
+      'sclerocytes': 'sclerocyte'
+      'granulocytes': 'granulocyte'
+      'basopinacocytes': 'basopinacocyte'
+      'lophocytes': 'lophocyte'
+      'amoebocytes': 'amoebocyte'
+      'sclerophorocytes': 'sclerophorocyte'
+
+  cell_supertypes:
+    'immune': [
+      'granulocyte',
+      'amoebocyte',
+    ]
+
+    'epithelial': [
+      'choanocyte',
+      'apopylar',
+      'choanoblast',
+      'incurrent pinacocyte',
+      'basopinacocyte',
+      'apendopinacocyte',
+    ]
+
+    'mesenchymal': [
+      'archaeocyte',
+      'myopeptidocyte',
+      'metabolocyte',
+      'mesocyte',
+      'sclerocyte',
+      'sclerophorocyte',
+      'lophocyte',
+    ]
+
+    'other': ['neuroid']
+
+  supertype_order: [
+    'immune', 'epithelial', 'mesenchymal', 'other',
+  ]
