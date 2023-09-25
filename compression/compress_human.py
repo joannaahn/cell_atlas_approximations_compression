@@ -734,52 +734,6 @@ if __name__ == '__main__':
                 },
             }
 
-            if False:
-                print('Add data to celltype-timepoint group')
-                # NOTE: see supplementary table 1 of the Science paper
-                adata_tissue.obs['age'] = adata_tissue.obs['donor'].map({
-                    'TSP7': 69, 'TSP14': 59, 'TSP4': 38,
-                })
-                ages = adata_tissue.obs['age'].value_counts().index.tolist()
-                ages.sort()
-                columns_age = []
-                for ct in celltypes:
-                    for age in ages:
-                        columns_age.append('_'.join([ct, 'TS', str(age)]))
-
-                # Averages
-                genes = adata_tissue.var_names
-                avg_ge_tp = pd.DataFrame(
-                        np.zeros((len(genes), len(celltypes) * len(ages)), np.float32),
-                        index=genes,
-                        columns=columns_age,
-                        )
-                frac_ge_tp = pd.DataFrame(
-                        np.zeros((len(genes), len(celltypes) * len(ages)), np.float32),
-                        index=genes,
-                        columns=columns_age,
-                        )
-                ncells_ge_tp = pd.Series(
-                        np.zeros(len(columns_age), np.int64), index=columns_age,
-                        )
-                for celltype in celltypes:
-                    adata_ct = adata_tissue[adata_tissue.obs['cellType'] == celltype]
-                    for age in ages:
-                        idx_age = (adata_ct.obs['age'] == age).values.nonzero()[0]
-                        if len(idx_age) == 0:
-                            continue
-                        Xct_age = adata_ct.X[idx_age]
-                        label = '_'.join([celltype, 'TS', str(age)])
-                        avg_ge_tp[label] = np.asarray(Xct_age.mean(axis=0))[0]
-                        frac_ge_tp[label] = np.asarray((Xct_age > 0).mean(axis=0))[0]
-                        ncells_ge_tp[label] = len(idx_age)
-
-                compressed_atlas[tissue]['celltype_dataset_timepoint'] = {
-                        'avg': avg_ge_tp,
-                        'frac': frac_ge_tp,
-                        'ncells': ncells_ge_tp,
-                }
-
         print('Consolidate gene list across tissues')
         needs_union = False
         genes = None

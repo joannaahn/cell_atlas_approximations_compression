@@ -30,6 +30,11 @@ def load_config(species):
             "measurement_types": ["RNA"],
             "RNA": config,
         }
+    else:
+        for mt in config['measurement_types']:
+            config_mt = config[mt]
+            for st in ['cell_supertypes', 'supertype_order']:
+                config_mt['cell_annotations'][st] = config['cell_annotations'][st]
 
     for mt in config["measurement_types"]:
         config_mt = config[mt]
