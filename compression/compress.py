@@ -27,6 +27,7 @@ from utils import (
     compress_tissue,
     collect_feature_annotations,
     store_compressed_atlas,
+    filter_cells,
     )
 
 
@@ -73,11 +74,44 @@ if __name__ == '__main__':
             config_mt = config[measurement_type]
             tissues = config_mt["tissues"]
             celltype_order = config_mt["cell_annotations"]["celltype_order"]
+
+            if "path_global" in config_mt:
+                print(f"Read full atlas")
+                adata = anndata.read(config_mt["path_global"])
+
+            if "path_metadata_global" in config_mt:
+                print("Read global metadata separately")
+                meta = pd.read_csv(config_mt["path_metadata_global"], sep='\t', index_col=0).loc[adata.obs_names]
+
+                if ("filter_cells_global" in config_mt) and ("metadata" in config_mt["filter_cells_global"]):
+                    column, value = config_mt["filter_cells_global"]["metadata"]
+                    meta = meta.loc[meta[column] == value]
+
+
             for tissue in tissues:
                 print(tissue)
 
-                print("Read full atlas")
-                adata_tissue = anndata.read(config_mt["path"])
+                if "path_metadata_global" in config_mt:
+                    meta_tissue = meta.loc[meta['tissue'] == tissue]
+
+                if "path_global" not in config_mt:
+                    print(f"Read full atlas for {tissue}")
+                    adata_tissue = anndata.read(config_mt["path"][tissue])
+                else:
+                    print(f'Slice cells for {tissue}')
+                    if "path_metadata_global" in config_mt:
+                        adata_tissue = adata[meta_tissue.index]
+                    else:
+                        adata_tissue = adata[adata.obs['tissue'] == tissue]
+
+                if ("load_params" in config_mt) and ("backed" in config_mt["load_params"]):
+                    adata_tissue = adata_tissue.to_memory()
+                
+                if "path_metadata_global" in config_mt:
+                    adata_tissue.obs = meta_tissue.copy()
+
+                print("Filter cells")
+                adata_tissue = filter_cells(adata_tissue, config_mt["filter_cells"])
 
                 print("Normalise")
                 adata_tissue = normalise_counts(adata_tissue, config_mt['normalisation'])

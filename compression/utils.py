@@ -24,11 +24,11 @@ def load_config(species):
     with open(config_path) as f:
         config = yaml.safe_load(f)
 
-    # Default to RNA-Seq
+    # Default to gene expression
     if "measurement_types" not in config:
         config = {
-            "measurement_types": ["RNA"],
-            "RNA": config,
+            "measurement_types": ["gene_expression"],
+            "gene_expression": config,
         }
     else:
         for mt in config['measurement_types']:
@@ -39,13 +39,26 @@ def load_config(species):
     for mt in config["measurement_types"]:
         config_mt = config[mt]
 
-        # FIXME: what if each tissue is a file?
-        if "path" not in config_mt:
-            config_mt["path"] = species + '.h5ad'
-        config_mt["path"] = root_repo_folder / 'data' / 'full_atlases' / mt / species / config_mt["path"]
-
         if "tissues" not in config_mt:
             config_mt["tissues"] = ["whole"]
+
+        if ("path" not in config_mt) and ("path_global" not in config_mt):
+            config_mt["path"] = species + '.h5ad'
+
+        if ("path" in config_mt) and isinstance(config_mt["path"], str):
+            config_mt["path"] = {t: config_mt["path"] for t in config_mt["tissues"]}
+
+        # Use absolute paths
+        root_fdn = root_repo_folder / 'data' / 'full_atlases' / mt / species
+        for key in ["path_global", "path_metadata_global"]:
+            if key in config_mt:
+                config_mt[key] = root_fdn / config_mt[key]
+        if "path" in config_mt:
+            for tissue in config_mt["path"]:
+                config_mt["path"][tissue] = root_fdn / config_mt["path"][tissue]
+
+        if "filter_cells" not in config_mt:
+            config_mt["filter_cells"] = {}
 
         if "coarse_cell_types" not in config_mt["cell_annotations"]:
             config_mt["cell_annotations"]["coarse_cell_types"] = []
@@ -71,6 +84,24 @@ def load_config(species):
             config_mt["feature_annotation"] = root_repo_folder / 'data' / 'gene_annotations' / config_mt["feature_annotation"]
 
     return config
+
+
+def filter_cells(adata, config_mt):
+    """Filter cells according to some parameter dictionary."""
+    filter_dict = config_mt.get("filter_cells", {})
+
+    if len(filter_dict) == 0:
+        return adata
+
+    if "min_cells_per_type" in filter_dict:
+        nmin = filter_dict["min_cells_per_type"]
+
+        column = config_mt["cell_annotations"]["column"]
+        ct_counts = adata.obs[column].value_counts()
+        ct_abundant = ct_counts.index[ct_counts >= nmin]
+        adata = adata[adata.obs[column].isin(ct_abundant)]
+
+    return adata
 
 
 def get_tissue_data_dict(species, atlas_folder, rename_dict=None):
@@ -563,8 +594,8 @@ def sanitise_gene_names(genes):
 def normalise_counts(adata_tissue, input_normalisation, measurement_type="gene_expression"):
     """Normalise counts no matter what the input normalisation is."""
     if measurement_type == "gene_expression":
-        if input_normalisation == "cptt":
-            return adata_tissue
+        if input_normalisation not in ("cptt", "raw", "cpm", "cpm+log", "to-raw"):
+            raise ValueError("Input normalisation not recognised: {input_normalisation}")
 
         if input_normalisation in ("to-raw",):
             adata_tissue = adata_tissue.raw.to_adata()
@@ -578,13 +609,19 @@ def normalise_counts(adata_tissue, input_normalisation, measurement_type="gene_e
                 target_sum=1e4,
                 key_added='coverage',
             )
-        else:
-            raise ValueError("Input normalisation not recognised: {input_normalisation}")
 
         return adata_tissue
 
-        
+    elif measurement_type == "chromatin_accessibility":
+        if input_normalisation not in ("binary", "to-binary"):
+            raise ValueError("Input normalisation not recognised: {input_normalisation}")
 
+        if input_normalisation == "to-binary":
+            adata_tissue.X.data[:] = 1
+
+        return adata_tissue
+
+    raise ValueError("measurement type not recognised")
 
 
 def compress_tissue(adata_tissue, celltype_order, measurement_type="gene_expression"):
