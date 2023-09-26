@@ -60,8 +60,14 @@ def load_config(species):
         if "filter_cells" not in config_mt:
             config_mt["filter_cells"] = {}
 
-        if "coarse_cell_types" not in config_mt["cell_annotations"]:
-            config_mt["cell_annotations"]["coarse_cell_types"] = []
+        if "require_subannotation" not in config_mt["cell_annotations"]:
+            config_mt["cell_annotations"]["require_subannotation"] = []
+
+        if "subannotation_kwargs" not in config_mt["cell_annotations"]:
+            config_mt["cell_annotations"]["subannotation_kwargs"] = {}
+
+        if "blacklist" not in config_mt["cell_annotations"]:
+            config_mt["cell_annotations"]["blacklist"] = {t: [] for t in config_mt["tissues"]}
 
         celltype_order = []
         for supertype in config_mt["cell_annotations"]["supertype_order"]:
@@ -73,9 +79,6 @@ def load_config(species):
 
         del config_mt["cell_annotations"]["supertype_order"]
         del config_mt["cell_annotations"]["cell_supertypes"]
-
-        if "blacklist" not in config_mt["cell_annotations"]:
-            config_mt["cell_annotations"]["blacklist"] = {t: [] for t in config_mt["tissues"]}
 
         if "feature_annotation" not in config_mt:
             config_mt["feature_annotation"] = False
@@ -247,9 +250,15 @@ def subannotate(adata,
     return new_annotations
 
 
-def fix_annotations(
-    adata, column, species, tissue, rename_dict, coarse_cell_types,
-    blacklist=None, subannotation_kwargs=None,
+def correct_annotations(
+    adata,
+    column,
+    species,
+    tissue,
+    rename_dict,
+    require_subannotation,
+    blacklist=None,
+    subannotation_kwargs=None,
 ):
     '''Correct cell types in each tissue according to known dict'''
     # Ignore cells with NaN in the cell.type column
@@ -293,7 +302,7 @@ def fix_annotations(
     # Look for coarse annotations
     ctnew_list = set(celltypes_new)
     for celltype in ctnew_list:
-        if celltype in coarse_cell_types:
+        if celltype in require_subannotation:
             idx = celltypes_new == celltype
             adata_coarse_type = adata[idx]
             subannotations = subannotate(
@@ -665,3 +674,46 @@ def compress_tissue(adata_tissue, celltype_order, measurement_type="gene_express
         result['celltype']['frac'] = frac_ge
 
     return result
+
+
+def collect_feature_sequences(species, features, measurement_type):
+    """Collect sequences of features to enable cross-species comparisons."""
+    def _collect_from_ensembl(ensembl_ids):
+        import requests, sys
+        server = "https://rest.ensembl.org"
+        ext = "/sequence/id"
+        headers={
+            "Content-Type" : "application/json",
+            "Accept" : "application/json",
+        }
+        data_string = '{ "ids" : [' + ', '.join([f'"{x}"' for x in ensembl_ids]) + '] }'
+        r = requests.post(
+            server+ext,
+            headers=headers,
+            data=data_string,
+        )
+         
+        if not r.ok:
+          r.raise_for_status()
+          sys.exit()
+         
+        decoded = r.json()
+        return decoded
+
+
+    species_fdn = root_repo_folder / 'data' / 'full_atlases' / measurement_type / species
+    species_ensembl_fn = species_fdn / 'gene_ensembl_ids.tsv.gz'
+    if species_ensembl_fn.exists():
+        feature_table = pd.read_csv(species_ensembl_fn, sep='\t')
+        feature_ids = (feature_table
+                             .loc[feature_table['Ensembl Canonical'] == 1.0]
+                             .drop_duplicates(subset='Gene name')
+                             .set_index('Gene name')
+                             .loc[:, ['Transcript stable ID']])
+        genes_overlap = list(set(feature_ids.index) & set(features))
+        ids_overlap = feature_ids.loc[genes_overlap, 'Transcript stable ID'].values
+        seqs_overlap = _collect_from_ensembl(ids_overlap[:75])
+        import ipdb; ipdb.set_trace()
+
+
+    return ["" for f in features]

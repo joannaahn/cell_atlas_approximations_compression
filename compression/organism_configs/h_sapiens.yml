@@ -214,6 +214,23 @@ gene_expression:
         'epithelial cell of uterus': 'epithelial'
         'ciliated epithelial cell': 'ciliated'
 
+    blacklist:
+      'prostate': [
+        'sperm',
+      ]
+
+      'salivary': [
+        'salivary gland cell',
+      ]
+
+      'gut': [
+        'duodenum glandular cell',
+      ]
+
+      'eye': [
+        'endothelial cell',
+      ]
+
     require_subannotation: [
       "endothelial",
       "immune cell",
@@ -224,7 +241,7 @@ gene_expression:
 
     subannotation_kwargs:
       markers:
-        immune_cell:
+        'immune cell':
           'T': ['CD3D', 'CD3G', 'CD3E', 'TRAC', 'IL7R']
           'B': ['MS4A1', 'CD19', 'CD79A']
           'NK': ['PFN1', 'TMSB4XP8']
@@ -402,7 +419,7 @@ cell_annotations:
       'luteal',
       'neuron',
       'oligodendrocyte',
-      'OPC',
+      'opc',
       'astrocyte',
       'photoreceptor',
       'muller',

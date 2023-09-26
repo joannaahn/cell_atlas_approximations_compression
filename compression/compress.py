@@ -6,6 +6,7 @@ content:    Compress isodiametra pulchra, an acoel.
 '''
 import os
 import sys
+import gc
 import pathlib
 import gzip
 import h5py
@@ -22,10 +23,11 @@ from utils import (
     get_tissue_data_dict,
     subannotate,
     normalise_counts,
-    fix_annotations,
+    correct_annotations,
     get_celltype_order,
     compress_tissue,
     collect_feature_annotations,
+    collect_feature_sequences,
     store_compressed_atlas,
     filter_cells,
     )
@@ -34,6 +36,13 @@ from utils import (
 if __name__ == '__main__':
 
     species_list = [
+        # Multi-organ species
+        'h_sapiens',
+        'm_musculus',
+        'm_myoxinus',
+        'd_melanogaster',
+        'x_laevis',
+
         # Single-organ species
         'l_minuta',
         'h_miamia',
@@ -47,13 +56,7 @@ if __name__ == '__main__':
         's_mansoni',
         's_lacustris',
         'm_leidyi',
-
-        # Multi-organ species
-        'h_sapiens',
-        'm_musculus',
-        'm_myoxinus',
-        'd_melanogaster',
-        'x_laevis',
+        'n_vectensis',
     ]
 
     for species in species_list:
@@ -69,7 +72,9 @@ if __name__ == '__main__':
         if os.path.isfile(fn_out):
             os.remove(fn_out)
 
+        # Iterate over gene expression, chromatin accessibility, etc.
         for measurement_type in config["measurement_types"]:
+
             compressed_atlas = {}
             config_mt = config[measurement_type]
             tissues = config_mt["tissues"]
@@ -87,7 +92,7 @@ if __name__ == '__main__':
                     column, value = config_mt["filter_cells_global"]["metadata"]
                     meta = meta.loc[meta[column] == value]
 
-
+            # Iterate over tissues
             for tissue in tissues:
                 print(tissue)
 
@@ -117,19 +122,30 @@ if __name__ == '__main__':
                 adata_tissue = normalise_counts(adata_tissue, config_mt['normalisation'])
 
                 print("Correct cell annotations")
-                adata_tissue = fix_annotations(
-                    adata_tissue, config_mt['cell_annotations']['column'],
+                adata_tissue = correct_annotations(
+                    adata_tissue,
+                    config_mt['cell_annotations']['column'],
                     species,
                     tissue,
                     config_mt['cell_annotations']['rename_dict'],
-                    config_mt['cell_annotations']['coarse_cell_types'],
+                    config_mt['cell_annotations']['require_subannotation'],
                     blacklist=config_mt['cell_annotations']['blacklist'],
+                    subannotation_kwargs=config_mt['cell_annotations']['subannotation_kwargs'],
                 )
 
                 print("Compress atlas")
                 compressed_atlas[tissue] = compress_tissue(
                     adata_tissue, celltype_order,
                 )
+
+                break
+
+            print('Feature sequences')
+            feature_seqs = collect_feature_sequences(
+                species,
+                adata_tissue.var_names,
+                measurement_type,
+            )
 
             print('Feature annotations')
             feature_annos = collect_feature_annotations(
@@ -146,3 +162,12 @@ if __name__ == '__main__':
                     feature_annos,
                     celltype_order,
             )
+
+            del adata_tissue
+            if "path_global" in config_mt:
+                del adata
+            if "path_metadata_global" in config_mt:
+                del meta
+
+            print('Garbage collection at the end of a species and measurement type')
+            gc.collect()
