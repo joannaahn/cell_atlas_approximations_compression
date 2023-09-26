@@ -161,21 +161,21 @@ if __name__ == '__main__':
             )
 
             del compressed_atlas
-            del feature_annos
             del tissues
             del celltype_order
 
-            print('Garbage collection before storing feature sequences')
-            gc.collect()
+            if "feature_sequences" in config_mt:
+                print('Garbage collection before storing feature sequences')
+                gc.collect()
 
-            print('Feature sequences')
-            feature_sequences = collect_feature_sequences(
-                config_mt,
-                feartures,
-                measurement_type, species,
-            )
+                print('Collect feature sequences')
+                feature_sequences = collect_feature_sequences(
+                    config_mt,
+                    features,
+                    measurement_type, species,
+                )
 
-            if feature_sequences is not None:
+                print('Store feature sequences')
                 store_compressed_feature_sequences(
                     fn_out,
                     feature_sequences,
@@ -189,7 +189,7 @@ if __name__ == '__main__':
                 print('Garbage collection before storing feature annotations')
                 gc.collect()
 
-                print('Feature annotations')
+                print('Collect feature annotations')
                 feature_annos = collect_feature_annotations(
                         config_mt['feature_annotation'],
                         features,
@@ -197,11 +197,18 @@ if __name__ == '__main__':
                 )
 
                 if feature_annos is not None:
+                    print('Store feature annotations')
                     store_compressed_feature_annotations(
                         fn_out,
                         feature_annos,
                         measurement_type,
                     )
 
+                del feature_annos
+
             print('Garbage collection at the end of a species and measurement type')
             gc.collect()
+
+            # FIXME
+            # OK, now onwards to ATAC-Seq
+            sys.exit()

@@ -6,7 +6,7 @@ gene_expression:
   path:
     bladder: "TS_Bladder.h5ad"
     blood: "TS_Blood.h5ad"
-    bone_marrow: "TS_Bone_Marrow.h5ad"
+    marrow: "TS_Bone_Marrow.h5ad"
     eye: "TS_Eye.h5ad"
     fat: "TS_Fat.h5ad"
     heart: "TS_Heart.h5ad"
@@ -14,7 +14,7 @@ gene_expression:
     colon: "TS_Large_Intestine.h5ad"
     liver: "TS_Liver.h5ad"
     lung: "TS_Lung.h5ad"
-    lymph_node: "TS_Lymph_Node.h5ad"
+    lymphnode: "TS_Lymph_Node.h5ad"
     mammary: "TS_Mammary.h5ad"
     muscle: "TS_Muscle.h5ad"
     pancreas: "TS_Pancreas.h5ad"
@@ -36,7 +36,7 @@ gene_expression:
   tissues: [
     'bladder',
     'blood',
-    'bone_marrow',
+    'marrow',
     'eye',
     'fat',
     'heart',
@@ -44,7 +44,7 @@ gene_expression:
     'colon',
     'liver',
     'lung',
-    'lymph_node',
+    'lymphnode',
     'mammary',
     'muscle',
     'pancreas',

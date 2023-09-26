@@ -2,6 +2,7 @@
 Utility functions for the compression
 '''
 import os
+import gc
 import pathlib
 import yaml
 import gzip
@@ -258,7 +259,9 @@ def correct_annotations(
     # Ignore cells with NaN in the cell.type column
     idx = adata.obs[column].isin(
             adata.obs[column].value_counts().index)
-    adata= adata[idx].copy()
+    adata = adata[idx].copy()
+
+    gc.collect()
 
     adata.obs[column + '_lowercase'] = adata.obs[column].str.lower()
 
@@ -431,7 +434,7 @@ def store_compressed_feature_sequences(
     fn_out,
     feature_sequences,
     measurement_type,
-    compression=22,
+    compression=19,
     ):
     '''Store compressed features into h5 file.'''
     # Optional zstd compression using hdf5plugin
@@ -457,7 +460,7 @@ def store_compressed_feature_sequences(
         # fast no matter what. Doing more than level 19 requires a LOT of memory
         group.create_dataset(
             "sequences", data=feature_sequences["sequences"].values.astype('S'),
-            hdf5plugin.Zstd(clevel=min(compression, 19)),
+            **comp_kwargs,
         )
 
 
