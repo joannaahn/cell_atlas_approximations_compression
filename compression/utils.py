@@ -258,7 +258,7 @@ def correct_annotations(
     # Ignore cells with NaN in the cell.type column
     idx = adata.obs[column].isin(
             adata.obs[column].value_counts().index)
-    adata= adata[idx]
+    adata= adata[idx].copy()
 
     adata.obs[column + '_lowercase'] = adata.obs[column].str.lower()
 
@@ -299,6 +299,7 @@ def correct_annotations(
         if celltype in require_subannotation:
             idx = celltypes_new == celltype
             adata_coarse_type = adata[idx]
+            print(f'Subannotating {celltype}')
             subannotations = subannotate(
                 adata_coarse_type, species, celltype,
                 **subannotation_kwargs,
@@ -308,6 +309,7 @@ def correct_annotations(
             for subanno in subannotations:
                 if subanno in ct_found:
                     subannotations[subannotations == subanno] = ''
+            print('Subannotation done')
 
             celltypes_new[idx] = subannotations
 
@@ -425,12 +427,74 @@ def collect_feature_annotations(anno_fn, features, measurement_type="gene_expres
     return None
 
 
+def store_compressed_feature_sequences(
+    fn_out,
+    feature_sequences,
+    measurement_type,
+    compression=22,
+    ):
+    '''Store compressed features into h5 file.'''
+    # Optional zstd compression using hdf5plugin
+    if compression:
+        import hdf5plugin
+        # NOTE: decompressing zstd is equally fast no matter how much compression.
+        # As for compression speed, levels 1-19 are normal, 20-22 "ultra".
+        # A quick runtime test shows *faster* access for clevel=22 than clevel=3,
+        # while the file size is around 10% smaller. Compression speed is significantly
+        # slower, but (i) still somewhat faster than actually averaging the data and
+        # (ii) compresses whole human RNA+ATAC is less than 1 minute. That's nothing
+        # considering these approximations do not change that often.
+        comp_kwargs = hdf5plugin.Zstd(clevel=compression)
+    else:
+        comp_kwargs = {}
+
+
+    with h5py.File(fn_out, 'a') as h5_data:
+        me = h5_data[measurement_type]
+        group = me.create_group('feature_sequences')
+        group.attrs["type"] = feature_sequences["type"]
+        # Compression here is really important, even though slow. Decompression should be
+        # fast no matter what. Doing more than level 19 requires a LOT of memory
+        group.create_dataset(
+            "sequences", data=feature_sequences["sequences"].values.astype('S'),
+            hdf5plugin.Zstd(clevel=min(compression, 19)),
+        )
+
+
+def store_compressed_feature_annotations(
+    fn_out,
+    feature_annos,
+    measurement_type,
+    ):
+    '''Store compressed feature annotations.'''
+    with h5py.File(fn_out, 'a') as h5_data:
+        me = h5_data[measurement_type]
+
+        group = me.create_group('feature_annotations')
+        group.create_dataset(
+                'feature_name',
+                data=feature_annos.index.values.astype('S'))
+        if 'transcription_start_site' in feature_annos.columns:
+            group.create_dataset(
+                    'transcription_start_site',
+                    data=feature_annos['transcription_start_site'].values, dtype='i8')
+        group.create_dataset(
+                'chromosome_name',
+                data=feature_annos['chromosome_name'].astype('S'))
+        group.create_dataset(
+                'start_position',
+                data=feature_annos['start_position'].values, dtype='i8')
+        group.create_dataset(
+                'end_position',
+                data=feature_annos['end_position'].values, dtype='i8')
+        group.create_dataset(
+                'strand', data=feature_annos['strand'].values, dtype='i2')
+
+
 def store_compressed_atlas(
         fn_out,
         compressed_atlas,
         tissues,
-        feature_sequences,
-        feature_annos,
         celltype_order,
         measurement_type='gene_expression',
         compression=22,
@@ -443,7 +507,6 @@ def store_compressed_atlas(
         fn_out: The h5 file with the compressed atlas.
         compressed_atlas: The dict with the result.
         tissues: A list of tissues covered.
-        feature_annos: Gene annotations if available (only for gene expression).
         celltype_order: The order of cell types.
         measurement_type: What type of data this is (gene expression, chromatin accessibility, etc.).
         quantisation: If not None, average measurement is quantised with these bins.
@@ -494,47 +557,15 @@ def store_compressed_atlas(
         avg_dtype = "f4"
         quantisation = False
 
-    if feature_annos is not None:
-        features = feature_annos.index.tolist()
-    else:
-        for tissue, group in compressed_atlas.items():
-            features = group['features'].tolist()
+    for tissue, group in compressed_atlas.items():
+        features = group['features'].tolist()
+        break
 
     with h5py.File(fn_out, 'a') as h5_data:
         me = h5_data.create_group(measurement_type)
         me.create_dataset('features', data=np.array(features).astype('S'))
         if quantisation:
             me.create_dataset('quantisation', data=np.array(quantisation_array).astype('f4'))
-
-        if feature_sequences is not None:
-            group = me.create_group('feature_sequences')
-            group.attrs["type"] = feature_sequences["type"]
-            # Compression here is really important, even though slow. Decompression should be
-            # fast no matter what.
-            group.create_dataset(
-                "sequences", data=feature_sequences["sequences"].values.astype('S'),
-                **comp_kwargs,
-            )
-
-        if feature_annos is not None:
-            group = me.create_group('feature_annotations')
-            group.create_dataset(
-                    'gene_name', data=feature_annos.index.values.astype('S'))
-            if 'transcription_start_site' in feature_annos.columns:
-                group.create_dataset(
-                        'transcription_start_site',
-                        data=feature_annos['transcription_start_site'].values, dtype='i8')
-            group.create_dataset(
-                    'chromosome_name',
-                    data=feature_annos['chromosome_name'].astype('S'))
-            group.create_dataset(
-                    'start_position',
-                    data=feature_annos['start_position'].values, dtype='i8')
-            group.create_dataset(
-                    'end_position',
-                    data=feature_annos['end_position'].values, dtype='i8')
-            group.create_dataset(
-                    'strand', data=feature_annos['strand'].values, dtype='i2')
 
         me.create_dataset('tissues', data=np.array(tissues).astype('S'))
         supergroup = me.create_group('by_tissue')

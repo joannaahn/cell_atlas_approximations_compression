@@ -26,7 +26,7 @@ gene_expression:
     thymus: "TS_Thymus.h5ad"
     tongue: "TS_Tongue.h5ad"
     trachea: "TS_Trachea.h5ad"
-    uterus: "TS_Uterus.h5ad "
+    uterus: "TS_Uterus.h5ad"
 
   normalisation: "to-raw"
   feature_sequences:

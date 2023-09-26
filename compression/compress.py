@@ -28,6 +28,7 @@ from utils import (
     compress_tissue,
     collect_feature_annotations,
     collect_feature_sequences,
+    store_compressed_feature_sequences,
     store_compressed_atlas,
     filter_cells,
     )
@@ -36,8 +37,6 @@ from utils import (
 if __name__ == '__main__':
 
     species_list = [
-        'n_vectensis',
-
         # Multi-organ species
         'h_sapiens',
         'm_musculus',
@@ -58,6 +57,7 @@ if __name__ == '__main__':
         's_mansoni',
         's_lacustris',
         'm_leidyi',
+        'n_vectensis',
     ]
 
     for species in species_list:
@@ -139,40 +139,69 @@ if __name__ == '__main__':
                     adata_tissue, celltype_order,
                 )
 
-                break
-
-            print('Feature sequences')
-            feature_sequences = collect_feature_sequences(
-                config_mt,
-                adata_tissue.var_names,
-                measurement_type, species,
-            )
-
-            # FIXME
-            if False:
-                print('Feature annotations')
-                feature_annos = collect_feature_annotations(
-                        config_mt['feature_annotation'],
-                        adata_tissue.var_names,
-                        measurement_type,
-                )
-            feature_annos = None
-
-            print('Store compressed atlas')
-            store_compressed_atlas(
-                    fn_out,
-                    compressed_atlas,
-                    tissues,
-                    feature_sequences,
-                    feature_annos,
-                    celltype_order,
-            )
+            # TODO: harmonise across tissues, sometimes (e.g. fly) that is not a given
+            features = adata_tissue.var_names
 
             del adata_tissue
             if "path_global" in config_mt:
                 del adata
             if "path_metadata_global" in config_mt:
                 del meta
+
+            print('Garbage collection before storing compressed atlas')
+            gc.collect()
+
+            print('Store compressed atlas')
+            store_compressed_atlas(
+                    fn_out,
+                    compressed_atlas,
+                    tissues,
+                    celltype_order,
+                    measurement_type=measurement_type,
+            )
+
+            del compressed_atlas
+            del feature_annos
+            del tissues
+            del celltype_order
+
+            print('Garbage collection before storing feature sequences')
+            gc.collect()
+
+            print('Feature sequences')
+            feature_sequences = collect_feature_sequences(
+                config_mt,
+                feartures,
+                measurement_type, species,
+            )
+
+            if feature_sequences is not None:
+                store_compressed_feature_sequences(
+                    fn_out,
+                    feature_sequences,
+                    measurement_type,
+                )
+
+            del feature_sequences
+
+            # FIXME
+            if False:
+                print('Garbage collection before storing feature annotations')
+                gc.collect()
+
+                print('Feature annotations')
+                feature_annos = collect_feature_annotations(
+                        config_mt['feature_annotation'],
+                        features,
+                        measurement_type,
+                )
+
+                if feature_annos is not None:
+                    store_compressed_feature_annotations(
+                        fn_out,
+                        feature_annos,
+                        measurement_type,
+                    )
 
             print('Garbage collection at the end of a species and measurement type')
             gc.collect()
