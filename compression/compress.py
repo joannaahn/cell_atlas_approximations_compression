@@ -36,6 +36,8 @@ from utils import (
 if __name__ == '__main__':
 
     species_list = [
+        'n_vectensis',
+
         # Multi-organ species
         'h_sapiens',
         'm_musculus',
@@ -56,7 +58,6 @@ if __name__ == '__main__':
         's_mansoni',
         's_lacustris',
         'm_leidyi',
-        'n_vectensis',
     ]
 
     for species in species_list:
@@ -141,24 +142,28 @@ if __name__ == '__main__':
                 break
 
             print('Feature sequences')
-            feature_seqs = collect_feature_sequences(
-                species,
+            feature_sequences = collect_feature_sequences(
+                config_mt,
                 adata_tissue.var_names,
-                measurement_type,
+                measurement_type, species,
             )
 
-            print('Feature annotations')
-            feature_annos = collect_feature_annotations(
-                    config_mt['feature_annotation'],
-                    adata_tissue.var_names,
-                    measurement_type,
-            )
+            # FIXME
+            if False:
+                print('Feature annotations')
+                feature_annos = collect_feature_annotations(
+                        config_mt['feature_annotation'],
+                        adata_tissue.var_names,
+                        measurement_type,
+                )
+            feature_annos = None
 
             print('Store compressed atlas')
             store_compressed_atlas(
                     fn_out,
                     compressed_atlas,
                     tissues,
+                    feature_sequences,
                     feature_annos,
                     celltype_order,
             )

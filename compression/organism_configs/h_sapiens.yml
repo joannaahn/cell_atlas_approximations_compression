@@ -29,6 +29,9 @@ gene_expression:
     uterus: "TS_Uterus.h5ad "
 
   normalisation: "to-raw"
+  feature_sequences:
+    path: "gene_sequences.fasta.gz"
+    type: "cDNA"
 
   tissues: [
     'bladder',

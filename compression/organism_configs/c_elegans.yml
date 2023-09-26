@@ -1,51 +1,52 @@
-path: "c_elegans_Cao_et_al_2017.h5ad"
+measurement_types: ["gene_expression"]
 
-normalisation: raw
-
-feature_annotation: 'c_elegans.PRJNA13758.WS287.annotations.gff3.gz'
-
-tissues: ["whole"]
-
+gene_expression:
+  path: "c_elegans_Cao_et_al_2017.h5ad"
+  normalisation: raw
+  feature_annotation: 'c_elegans.PRJNA13758.WS287.annotations.gff3.gz'
+  feature_sequences:
+    path: 'gene_sequences.fasta.gz'
+    type: 'cDNA'
+  tissues: ["whole"]
+  cell_annotations:
+    column: "cell.type"
+    rename_dict:
+      cell_types:
+        'Unclassified glia': 'glia'
+        'gABAergic neurons': 'GABAergic neuron'
+        'am/ph sheath cells': 'sheath'
+        'pharyngeal epithelia': 'pharyngeal epi'
+        'distal tip cells': 'distal tip'
+        'socket cells': 'socket'
+        'excretory cells': 'excretory'
+        'somatic gonad precursors': 'somatic gonad'
+        'unclassified neurons': 'neuron'
+        'dopaminergic neurons': 'dopaminergic neuron'
+        'cholinergic neurons': 'cholinergic neuron'
+        'ciliated sensory neurons': 'ciliated sensory neuron'
+        'canal associated neurons': 'canal associated neuron'
+        'touch receptor neurons': 'touch receptor neuron'
+        'pharyngeal neurons': 'pharyngeal neuron'
+        'oxygen sensory neurons': 'oxygen sensory neuron'
+        'flp-1(+) interneurons': 'flp-1(+) interneuron'
+        'other interneurons': 'neuron'
+        'vulval precursors': 'vulval precursor'
+        'coelomocytes': 'coelomocyte'
+        'seam cells': 'seam'
+        'sex myoblasts': 'sex myoblast'
+        'gabaergic neurons': 'GABAergic neuron'
+        'unclassified glia': 'glia'
+    blacklist:
+      whole: [
+        'Failed QC', 'failed qc'
+      ]
+  
 cell_annotations:
-  column: "cell.type"
-
-  rename_dict:
-    cell_types:
-      'Unclassified glia': 'glia'
-      'gABAergic neurons': 'GABAergic neuron'
-      'am/ph sheath cells': 'sheath'
-      'pharyngeal epithelia': 'pharyngeal epi'
-      'distal tip cells': 'distal tip'
-      'socket cells': 'socket'
-      'excretory cells': 'excretory'
-      'somatic gonad precursors': 'somatic gonad'
-      'unclassified neurons': 'neuron'
-      'dopaminergic neurons': 'dopaminergic neuron'
-      'cholinergic neurons': 'cholinergic neuron'
-      'ciliated sensory neurons': 'ciliated sensory neuron'
-      'canal associated neurons': 'canal associated neuron'
-      'touch receptor neurons': 'touch receptor neuron'
-      'pharyngeal neurons': 'pharyngeal neuron'
-      'oxygen sensory neurons': 'oxygen sensory neuron'
-      'flp-1(+) interneurons': 'flp-1(+) interneuron'
-      'other interneurons': 'neuron'
-      'vulval precursors': 'vulval precursor'
-      'coelomocytes': 'coelomocyte'
-      'seam cells': 'seam'
-      'sex myoblasts': 'sex myoblast'
-      'gabaergic neurons': 'GABAergic neuron'
-      'unclassified glia': 'glia'
-
-  blacklist:
-    whole: [
-      'Failed QC', 'failed qc'
-    ]
-
   cell_supertypes:
     'immune': [
        'glia'
     ]
-
+  
     'epithelial': [
       'seam',
       'non-seam hypodermis',
@@ -53,9 +54,9 @@ cell_annotations:
       'coelomocyte',
       'distal tip'
     ]
-
+  
     'endothelial': []
-
+  
     'mesenchymal': [
       'body wall muscle',
       'pharyngeal muscle',
@@ -67,7 +68,7 @@ cell_annotations:
       'excretory',
       'rectum'
     ]
-
+  
     'other': [
         'dopaminergic neuron',
         'cholinergic neuron',
@@ -83,7 +84,7 @@ cell_annotations:
         'somatic gonad',
         'vulval precursor'
     ]
-
+  
   supertype_order: [
     "immune",
     "epithelial",
@@ -91,4 +92,4 @@ cell_annotations:
     "mesenchymal",
     "other"
   ]
-
+    

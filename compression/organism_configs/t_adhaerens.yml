@@ -1,29 +1,31 @@
-path: "t_adhaerens_Sebe-Pedros_et_al_2018.h5ad"
+measurement_types: ["gene_expression"]
 
-normalisation: raw
-
-tissues: ["whole"]
+gene_expression:
+  path: "t_adhaerens_Sebe-Pedros_et_al_2018.h5ad"
+  normalisation: raw
+  tissues: ["whole"]
+  feature_sequences:
+    path: "Trichoplax_proteins.fasta.gz"
+    type: "protein"
+  cell_annotations:
+    column: "cell.type"
+    rename_dict:
+      cell_types:
+        'epithelia': 'epithelial'
+        'comb_cells': 'comb'
+        'striated': 'striated muscle'
+        'smooth': 'smooth muscle'
+        'lipohil': 'lipophil'
+        'neurop_1': 'neuroid'
+        'neurop_2': 'neuroid'
+        'neurop_3': 'neuroid'
+        'neurop_4': 'neuroid'
+        'neurop_5': 'neuroid'
+        'neurop_6': 'neuroid'
+    blacklist:
+      whole: ["unk_1", "unk_2", "unk_3"]
 
 cell_annotations:
-  column: "cell.type"
-
-  rename_dict:
-    cell_types:
-      'epithelia': 'epithelial'
-      'comb_cells': 'comb'
-      'striated': 'striated muscle'
-      'smooth': 'smooth muscle'
-      'lipohil': 'lipophil'
-      'neurop_1': 'neuroid'
-      'neurop_2': 'neuroid'
-      'neurop_3': 'neuroid'
-      'neurop_4': 'neuroid'
-      'neurop_5': 'neuroid'
-      'neurop_6': 'neuroid'
-
-  blacklist:
-    whole: ["unk_1", "unk_2", "unk_3"]
-
   cell_supertypes:
     'epithelial': [
       'epithelial',

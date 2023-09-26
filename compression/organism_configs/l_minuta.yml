@@ -1,28 +1,27 @@
-path: "l_minuta.h5ad"
+measurement_types: ["gene_expression"]
 
-normalisation: raw
-
-tissues: ["whole"]
+gene_expression:
+  path: "l_minuta.h5ad"
+  normalisation: raw
+  tissues: ["whole"]
+  cell_annotations:
+    column: "cell_type"
+    rename_dict:
+      cell_types:
+        'palisade i': 'palisade'
+        'palisade ii': 'palisade'
+        'sieve i': 'sieve'
+        'sieve ii': 'sieve'
+        'mesophyll i': 'mesophyll'
+        'mesophyll ii': 'mesophyll'
+        'parenchyma i': 'parenchyma'
+        'parenchyma ii': 'parenchyma'
+    blacklist:
+      whole: [
+        "not_clustered",
+      ]
 
 cell_annotations:
-  column: "cell_type"
-
-  rename_dict:
-    cell_types:
-      'palisade i': 'palisade'
-      'palisade ii': 'palisade'
-      'sieve i': 'sieve'
-      'sieve ii': 'sieve'
-      'mesophyll i': 'mesophyll'
-      'mesophyll ii': 'mesophyll'
-      'parenchyma i': 'parenchyma'
-      'parenchyma ii': 'parenchyma'
-
-  blacklist:
-    whole: [
-      "not_clustered",
-    ]
-
   cell_supertypes:
     'epithelial': [
       'epidermis',

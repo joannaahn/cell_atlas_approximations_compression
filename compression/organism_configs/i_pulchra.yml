@@ -1,29 +1,29 @@
-normalisation: raw
+measurement_types: ["gene_expression"]
 
-tissues: ["whole"]
+gene_expression:
+  normalisation: raw
+  tissues: ["whole"]
+  cell_annotations:
+    column: manual_annotations
+    rename_dict:
+      cell_types:
+        'neurons': 'neuron'
+        'secretory cells': 'secretory'
+        'cilia related': 'ciliated'
+        'sensory neurons': 'neuron'
+        'stem cells': 'stem'
+        'epithelial i': 'epithelial'
+        'epithelial ii': 'epithelial'
+        'digestive i': 'digestive'
+        'digestive ii': 'digestive'
+        'trp+ neurons': 'neuron'
+    blacklist:
+      whole: [
+        'uncharacterized',
+        'contamination'
+      ]
 
 cell_annotations:
-  column: manual_annotations
-
-  rename_dict:
-    cell_types:
-      'neurons': 'neuron'
-      'secretory cells': 'secretory'
-      'cilia related': 'ciliated'
-      'sensory neurons': 'neuron'
-      'stem cells': 'stem'
-      'epithelial i': 'epithelial'
-      'epithelial ii': 'epithelial'
-      'digestive i': 'digestive'
-      'digestive ii': 'digestive'
-      'trp+ neurons': 'neuron'
-
-  blacklist:
-    whole: [
-      'uncharacterized',
-      'contamination'
-    ]
-
   cell_supertypes:
     'epithelial': [
         'epithelial',

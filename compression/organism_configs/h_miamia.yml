@@ -1,34 +1,33 @@
-path: "20230628_hm_adult_annotated.h5ad"
+measurement_types: ["gene_expression"]
 
-normalisation: "to-raw"
-
-tissues: ["whole"]
+gene_expression:
+  path: "20230628_hm_adult_annotated.h5ad"
+  normalisation: "to-raw"
+  tissues: ["whole"]
+  cell_annotations:
+    column: "cell_types"
+    rename_dict:
+      cell_types:
+          # Reannotated by Dania in Bo Wang's lab.
+          # see original at https://www.nature.com/articles/s41467-023-38016-4
+          'germ_cells_1': 'germline'
+          'germ_cells_2': 'germline'
+          'muscle': 'striated muscle'
+          'endo_progen': 'endo progenitor'
+          'neural': 'neuron'
+          'neural-2': 'neuron'
+          'epi_pro': 'epidermal progenitor'
+          'neo-2': 'pluripotent'
+          'endo_like-i': 'digestive progenitor'
+          'endo_like-iii': 'endo tail'
+          'endo_like-ii': 'diffuse endo'
+    blacklist:
+      whole: [
+        'uk-1', 'uk-2', 'uk-3',
+        'gsc?'
+      ]
 
 cell_annotations:
-  column: "cell_types"
-
-  rename_dict:
-    cell_types:
-        # Reannotated by Dania in Bo Wang's lab.
-        # see original at https://www.nature.com/articles/s41467-023-38016-4
-        'germ_cells_1': 'germline'
-        'germ_cells_2': 'germline'
-        'muscle': 'striated muscle'
-        'endo_progen': 'endo progenitor'
-        'neural': 'neuron'
-        'neural-2': 'neuron'
-        'epi_pro': 'epidermal progenitor'
-        'neo-2': 'pluripotent'
-        'endo_like-i': 'digestive progenitor'
-        'endo_like-iii': 'endo tail'
-        'endo_like-ii': 'diffuse endo'
-
-  blacklist:
-    whole: [
-      'uk-1', 'uk-2', 'uk-3',
-      'gsc?'
-    ]
-
   cell_supertypes:
     'immune': [
     ]

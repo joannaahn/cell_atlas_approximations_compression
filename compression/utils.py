@@ -24,17 +24,11 @@ def load_config(species):
     with open(config_path) as f:
         config = yaml.safe_load(f)
 
-    # Default to gene expression
-    if "measurement_types" not in config:
-        config = {
-            "measurement_types": ["gene_expression"],
-            "gene_expression": config,
-        }
-    else:
-        for mt in config['measurement_types']:
-            config_mt = config[mt]
-            for st in ['cell_supertypes', 'supertype_order']:
-                config_mt['cell_annotations'][st] = config['cell_annotations'][st]
+    # Propagate cell supertypes and order for simplicity
+    for mt in config['measurement_types']:
+        config_mt = config[mt]
+        for st in ['cell_supertypes', 'supertype_order']:
+            config_mt['cell_annotations'][st] = config['cell_annotations'][st]
 
     for mt in config["measurement_types"]:
         config_mt = config[mt]
@@ -435,6 +429,7 @@ def store_compressed_atlas(
         fn_out,
         compressed_atlas,
         tissues,
+        feature_sequences,
         feature_annos,
         celltype_order,
         measurement_type='gene_expression',
@@ -510,6 +505,16 @@ def store_compressed_atlas(
         me.create_dataset('features', data=np.array(features).astype('S'))
         if quantisation:
             me.create_dataset('quantisation', data=np.array(quantisation_array).astype('f4'))
+
+        if feature_sequences is not None:
+            group = me.create_group('feature_sequences')
+            group.attrs["type"] = feature_sequences["type"]
+            # Compression here is really important, even though slow. Decompression should be
+            # fast no matter what.
+            group.create_dataset(
+                "sequences", data=feature_sequences["sequences"].values.astype('S'),
+                **comp_kwargs,
+            )
 
         if feature_annos is not None:
             group = me.create_group('feature_annotations')
@@ -676,44 +681,76 @@ def compress_tissue(adata_tissue, celltype_order, measurement_type="gene_express
     return result
 
 
-def collect_feature_sequences(species, features, measurement_type):
+def collect_feature_sequences(config_mt, features, measurement_type, species):
     """Collect sequences of features to enable cross-species comparisons."""
-    def _collect_from_ensembl(ensembl_ids):
-        import requests, sys
-        server = "https://rest.ensembl.org"
-        ext = "/sequence/id"
-        headers={
-            "Content-Type" : "application/json",
-            "Accept" : "application/json",
-        }
-        data_string = '{ "ids" : [' + ', '.join([f'"{x}"' for x in ensembl_ids]) + '] }'
-        r = requests.post(
-            server+ext,
-            headers=headers,
-            data=data_string,
-        )
-         
-        if not r.ok:
-          r.raise_for_status()
-          sys.exit()
-         
-        decoded = r.json()
-        return decoded
+    # CREDIT NOTE: FROM BIOPYTHON
+    def SimpleFastaParser(handle):
+        """Iterate over Fasta records as string tuples.
+    
+        Arguments:
+         - handle - input stream opened in text mode
+    
+        For each record a tuple of two strings is returned, the FASTA title
+        line (without the leading '>' character), and the sequence (with any
+        whitespace removed). The title line is not divided up into an
+        identifier (the first word) and comment or description.
+    
+        >>> with open("Fasta/dups.fasta") as handle:
+        ...     for values in SimpleFastaParser(handle):
+        ...         print(values)
+        ...
+        ('alpha', 'ACGTA')
+        ('beta', 'CGTC')
+        ('gamma', 'CCGCC')
+        ('alpha (again - this is a duplicate entry to test the indexing code)', 'ACGTA')
+        ('delta', 'CGCGC')
+    
+        """
+        # Skip any text before the first record (e.g. blank lines, comments)
+        for line in handle:
+            if line[0] == ">":
+                title = line[1:].rstrip()
+                break
+        else:
+            # no break encountered - probably an empty file
+            return
+    
+        # Main logic
+        # Note, remove trailing whitespace, and any internal spaces
+        # (and any embedded \r which are possible in mangled files
+        # when not opened in universal read lines mode)
+        lines = []
+        for line in handle:
+            if line[0] == ">":
+                yield title, "".join(lines).replace(" ", "").replace("\r", "")
+                lines = []
+                title = line[1:].rstrip()
+                continue
+            lines.append(line.rstrip())
+    
+        yield title, "".join(lines).replace(" ", "").replace("\r", "")
 
+    if "feature_sequences" not in config_mt:
+        return None
 
-    species_fdn = root_repo_folder / 'data' / 'full_atlases' / measurement_type / species
-    species_ensembl_fn = species_fdn / 'gene_ensembl_ids.tsv.gz'
-    if species_ensembl_fn.exists():
-        feature_table = pd.read_csv(species_ensembl_fn, sep='\t')
-        feature_ids = (feature_table
-                             .loc[feature_table['Ensembl Canonical'] == 1.0]
-                             .drop_duplicates(subset='Gene name')
-                             .set_index('Gene name')
-                             .loc[:, ['Transcript stable ID']])
-        genes_overlap = list(set(feature_ids.index) & set(features))
-        ids_overlap = feature_ids.loc[genes_overlap, 'Transcript stable ID'].values
-        seqs_overlap = _collect_from_ensembl(ids_overlap[:75])
-        import ipdb; ipdb.set_trace()
+    path = config_mt['feature_sequences']['path']
+    path = root_repo_folder / 'data' / 'full_atlases' / measurement_type / species / path
 
+    seqs = {fea: "" for fea in features}
+    with gzip.open(path, 'rt') as f:
+        for gene, seq in SimpleFastaParser(f):
+            # Sometimes they need a gene/id combo from biomart
+            if '|' in gene:
+                gene = gene.split('|')[0]
+            if gene == '':
+                continue
 
-    return ["" for f in features]
+            if gene in seqs:
+                seqs[gene] = seq
+
+    seqs = pd.Series(seqs).loc[features]
+
+    return {
+        'sequences': seqs,
+        'type': config_mt['feature_sequences']['type'],
+    }
