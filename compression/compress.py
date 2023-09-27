@@ -75,15 +75,21 @@ if __name__ == '__main__':
 
         # Iterate over gene expression, chromatin accessibility, etc.
         for measurement_type in config["measurement_types"]:
+            # FIXME
+            if measurement_type == "gene_expression":
+                continue
 
             compressed_atlas = {}
             config_mt = config[measurement_type]
-            tissues = config_mt["tissues"]
             celltype_order = config_mt["cell_annotations"]["celltype_order"]
+
+            load_params = {}
+            if 'load_params' in config_mt:
+                load_params.update(config_mt['load_params'])
 
             if "path_global" in config_mt:
                 print(f"Read full atlas")
-                adata = anndata.read(config_mt["path_global"])
+                adata = anndata.read(config_mt["path_global"], **load_params)
 
             if "path_metadata_global" in config_mt:
                 print("Read global metadata separately")
@@ -93,8 +99,22 @@ if __name__ == '__main__':
                     column, value = config_mt["filter_cells_global"]["metadata"]
                     meta = meta.loc[meta[column] == value]
 
+                if 'tissues' in config_mt['cell_annotations']['rename_dict']:
+                    tissues_raw = meta['tissue'].value_counts().index.tolist()
+                    tdict = config_mt['cell_annotations']['rename_dict']['tissues']
+                    tmap = {t: tdict.get(t, t) for t in tissues_raw}
+                    meta['tissue'] = meta['tissue'].map(tmap)
+                    del tdict, tmap
+
+                tissues = meta['tissue'].value_counts().index.tolist()
+                tissues = sorted([t for t in tissues if t != ''])
+            else:
+                tissues = config_mt["tissues"]
+
             # Iterate over tissues
             for tissue in tissues:
+                if tissue == '':
+                    continue
                 print(tissue)
 
                 if "path_metadata_global" in config_mt:
@@ -102,7 +122,7 @@ if __name__ == '__main__':
 
                 if "path_global" not in config_mt:
                     print(f"Read full atlas for {tissue}")
-                    adata_tissue = anndata.read(config_mt["path"][tissue])
+                    adata_tissue = anndata.read(config_mt["path"][tissue], **load_params)
                 else:
                     print(f'Slice cells for {tissue}')
                     if "path_metadata_global" in config_mt:
@@ -120,7 +140,11 @@ if __name__ == '__main__':
                 adata_tissue = filter_cells(adata_tissue, config_mt["filter_cells"])
 
                 print("Normalise")
-                adata_tissue = normalise_counts(adata_tissue, config_mt['normalisation'])
+                adata_tissue = normalise_counts(
+                    adata_tissue,
+                    config_mt['normalisation'],
+                    measurement_type,
+                )
 
                 print("Correct cell annotations")
                 adata_tissue = correct_annotations(

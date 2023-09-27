@@ -26,10 +26,14 @@ def load_config(species):
         config = yaml.safe_load(f)
 
     # Propagate cell supertypes and order for simplicity
-    for mt in config['measurement_types']:
-        config_mt = config[mt]
-        for st in ['cell_supertypes', 'supertype_order']:
-            config_mt['cell_annotations'][st] = config['cell_annotations'][st]
+    if 'cell_annotations' in config:
+        for mt in config['measurement_types']:
+            config_mt = config[mt]
+            if 'cell_annotations' not in config_mt:
+                config_mt['cell_annotations'] = config['cell_annotations']
+            else:
+                for st in config['cell_annotations']:
+                    config_mt['cell_annotations'][st] = config['cell_annotations'][st]
 
     for mt in config["measurement_types"]:
         config_mt = config[mt]
@@ -62,7 +66,7 @@ def load_config(species):
             config_mt["cell_annotations"]["subannotation_kwargs"] = {}
 
         if "blacklist" not in config_mt["cell_annotations"]:
-            config_mt["cell_annotations"]["blacklist"] = {t: [] for t in config_mt["tissues"]}
+            config_mt["cell_annotations"]["blacklist"] = {}
 
         celltype_order = []
         for supertype in config_mt["cell_annotations"]["supertype_order"]:
@@ -763,9 +767,6 @@ def collect_feature_sequences(config_mt, features, measurement_type, species):
             lines.append(line.rstrip())
     
         yield title, "".join(lines).replace(" ", "").replace("\r", "")
-
-    if "feature_sequences" not in config_mt:
-        return None
 
     path = config_mt['feature_sequences']['path']
     path = root_repo_folder / 'data' / 'full_atlases' / measurement_type / species / path

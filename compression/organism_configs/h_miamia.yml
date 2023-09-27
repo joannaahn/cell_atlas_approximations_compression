@@ -3,6 +3,9 @@ measurement_types: ["gene_expression"]
 gene_expression:
   path: "20230628_hm_adult_annotated.h5ad"
   normalisation: "to-raw"
+  feature_sequences:
+    path: "8_26_19_hmi_transcriptome_20140211_filtered_long_annotated.fasta.gz"
+    type: "cDNA"
   tissues: ["whole"]
   cell_annotations:
     column: "cell_types"
