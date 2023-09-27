@@ -62,25 +62,6 @@ gene_expression:
   cell_annotations:
     column: "cell_ontology_class"
 
-    blacklist:
-      'prostate': [
-        'sperm',
-      ]
-
-      'salivary': [
-        'salivary gland cell',
-      ]
-
-      'gut': [
-        'duodenum glandular cell',
-      ]
-
-      'eye': [
-        'endothelial cell',
-      ]
-
-      # TODO: ADD ATAC BLACKLIST
-
     require_subannotation: [
       "endothelial",
       "immune cell",
@@ -500,8 +481,8 @@ cell_annotations:
       'cardiac pericyte 1': 'pericyte'
       'endocardial cell': 'endocardial'
       'hepatocyte': 'hepatocyte'
-      'alveolar type 2 (at2) cell': 'at2 epi'
-      'alveolar type 1 (at1) cell': 'at1 epi'
+      'alveolar type 2 (at2) cell': 'AT2'
+      'alveolar type 1 (at1) cell': 'AT1'
       'alverolar type 2,immune': 'alveolar macrophage'
       'cilliated cell': 'ciliated'
       'mammary epithelial': 'epithelial'
@@ -515,11 +496,135 @@ cell_annotations:
       'pancreatic alpha cell 1': 'alpha'
       'ductal cell (pancreatic)': 'ductal'
       'pancreatic beta cell 2': 'beta'
-      'pancreatic delta,gamma cell': 'pp'
+      'pancreatic delta,gamma cell': 'PP'
       'pancreatic alpha cell 2': 'alpha'
       'parietal cell': 'parietal'
       'thyroid follicular cell': 'thyrocyte'
 
+  blacklist:
+    'adrenal': [
+      'luteal cell (ovarian)',
+      'smooth muscle (vaginal)',
+      'vascular smooth muscle 2',
+      'cns,enteric neuron',
+      'smooth muscle (general)',
+    ]
+
+    'brain': [
+      'peripheral nerve stromal',
+      'smooth muscle (vaginal)',
+    ]
+
+    'colon': [
+      'mammary luminal epithelial cell 2',
+      'pancreatic delta,gamma cell',
+      'ductal cell (pancreatic)',
+      'chief cell',
+      'luteal cell (ovarian)',
+    ]
+
+    'esophagus': [
+        'airway goblet cell',
+        'peripheral nerve stromal',
+        'mammary luminal epithelial cell 2',
+        'basal epithelial (mammary)',
+        'thyroid follicular cell',
+        'pancreatic acinar cell',
+        'luteal cell (ovarian)',
+    ]
+
+    'eye': [
+      'endothelial cell',
+    ]
+
+    'fat': [
+      'alverolar type 2,immune',
+      'peripheral nerve stromal',
+      'pancreatic acinar cell',
+      'ductal cell (pancreatic)',
+      'chief cell',
+    ]
+
+    'gut': [
+      'duodenum glandular cell',
+    ]
+
+    'heart': [
+      'peripheral nerve stromal',
+      'ductal cell (pancreatic)',
+      'mammary luminal epithelial cell 2',
+      'pancreatic acinar cell',
+      'alveolar type 2 (at2) cell',
+      'thyroid follicular cell',
+      'alveolar type 1 (at1) cell',
+      'luteal cell (ovarian)',
+    ]
+
+    'liver': [
+      'ductal cell (pancreatic)',
+      'mammary luminal epithelial cell 2',
+    ]
+
+    'lung': [
+      'chief cell',
+      'luteal cell (ovarian)',
+      'mammary luminal epithelial cell 2',
+      'ductal cell (pancreatic)',
+      'small intestinal enterocyte',
+    ]
+
+    'mammary': [
+      'ductal cell (pancreatic)'  
+    ]
+
+    'muscle': [
+      'peripheral nerve stromal',
+      'ductal cell (pancreatic)',
+      'luteal cell (ovarian)',
+    ]
+
+    'nerve': [
+      'ductal cell (pancreatic)',
+      'luteal cell (ovarian)',
+    ]
+
+    'ovary': [
+      'ductal cell (pancreatic)',
+    ]
+
+    'pancreas': [
+      'luteal cell (ovarian)',
+    ]
+
+    'prostate': [
+      'sperm',
+    ]
+
+    'salivary': [
+      'salivary gland cell',
+    ]
+
+    'skin': [
+      'luteal cell (ovarian)',
+      'peripheral nerve stromal',
+    ]
+
+    'stomach': [
+      'pancreatic delta,gamma cell',
+      'pancreatic acinar cell',
+    ]
+
+    'thyroid': [
+      'pancreatic delta,gamma cell',
+    ]
+
+    'uterus': [
+      'luteal cell (ovarian)',
+    ]
+ 
+    'vagina': [
+      'luteal cell (ovarian)',
+    ]
 
   cell_supertypes:
     'immune': [
@@ -555,8 +660,8 @@ cell_annotations:
       'transit amp',
       'enterocyte',
       'paneth',
-      'AT1 epi',
-      'AT2 epi',
+      'AT1',
+      'AT2',
       'hillock-club',
       'hillock-basal',
       'club',

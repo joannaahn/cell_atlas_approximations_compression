@@ -113,8 +113,6 @@ if __name__ == '__main__':
 
             # Iterate over tissues
             for tissue in tissues:
-                if tissue == '':
-                    continue
                 print(tissue)
 
                 if "path_metadata_global" in config_mt:
@@ -206,7 +204,7 @@ if __name__ == '__main__':
                     measurement_type,
                 )
 
-            del feature_sequences
+                del feature_sequences
 
             # FIXME
             if False:
@@ -232,7 +230,3 @@ if __name__ == '__main__':
 
             print('Garbage collection at the end of a species and measurement type')
             gc.collect()
-
-            # FIXME
-            # OK, now onwards to ATAC-Seq
-            sys.exit()
