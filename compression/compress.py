@@ -38,9 +38,9 @@ if __name__ == '__main__':
 
     species_list = [
         # Multi-organ species
-        'm_musculus',
         #'h_sapiens',  #FIXME
-        'm_myoxinus',
+        #'m_musculus',
+        'm_murinus',
         'd_melanogaster',
         'x_laevis',
 

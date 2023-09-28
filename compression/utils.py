@@ -652,7 +652,7 @@ def normalise_counts(adata_tissue, input_normalisation, measurement_type="gene_e
         if input_normalisation in ("to-raw",):
             adata_tissue = adata_tissue.raw.to_adata()
 
-        if input_normalisation in ("cpm+log",):
+        if input_normalisation in ("cpm+log", "cptt+log"):
             adata_tissue.X = np.expm1(adata_tissue.X)
 
         if input_normalisation in ("raw", "cpm", "cpm+log", "to-raw"):
