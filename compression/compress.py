@@ -38,8 +38,8 @@ if __name__ == '__main__':
 
     species_list = [
         # Multi-organ species
-        'h_sapiens',
         'm_musculus',
+        #'h_sapiens',  #FIXME
         'm_myoxinus',
         'd_melanogaster',
         'x_laevis',
@@ -75,10 +75,6 @@ if __name__ == '__main__':
 
         # Iterate over gene expression, chromatin accessibility, etc.
         for measurement_type in config["measurement_types"]:
-            # FIXME
-            if measurement_type == "gene_expression":
-                continue
-
             compressed_atlas = {}
             config_mt = config[measurement_type]
             celltype_order = config_mt["cell_annotations"]["celltype_order"]
@@ -108,6 +104,8 @@ if __name__ == '__main__':
 
                 tissues = meta['tissue'].value_counts().index.tolist()
                 tissues = sorted([t for t in tissues if t != ''])
+            elif "path_global" not in config_mt:
+                tissues = sorted(config_mt["path"].keys())
             else:
                 tissues = config_mt["tissues"]
 
