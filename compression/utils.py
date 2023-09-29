@@ -646,7 +646,8 @@ def sanitise_gene_names(genes):
 def normalise_counts(adata_tissue, input_normalisation, measurement_type="gene_expression"):
     """Normalise counts no matter what the input normalisation is."""
     if measurement_type == "gene_expression":
-        if input_normalisation not in ("cptt", "raw", "cpm", "cpm+log", "to-raw"):
+        if input_normalisation not in (
+                "cptt", "raw", "cpm", "cpm+log", "cptt+log", "to-raw"):
             raise ValueError("Input normalisation not recognised: {input_normalisation}")
 
         if input_normalisation in ("to-raw",):

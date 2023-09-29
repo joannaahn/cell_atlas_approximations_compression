@@ -687,6 +687,7 @@ cell_annotations:
       'corneal',
       'cholangiocyte',
       'mTEC',
+      'm',
     ]
 
     'endothelial': [
@@ -712,7 +713,7 @@ cell_annotations:
       'mesothelial',
       'satellite',
       'keratocyte',
-      'nerve stromal', # this one is actually not well defined...
+      'nerve stromal',
     ]
 
     'other': [

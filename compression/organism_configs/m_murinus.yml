@@ -4,13 +4,30 @@ measurement_types: [
 
 gene_expression:
   path:
-    marrow: "Bone_marrow_FIRM_hvg.h5ad"
+    bladder: "Bladder_FIRM_hvg.h5ad"
+    blood: "Blood_FIRM_hvg.h5ad"
+    bone: "Bone_FIRM_hvg.h5ad"
+    brain: "Brain_FIRM_hvg.h5ad"
     colon: "Colon_FIRM_hvg.h5ad"
+    diaphragm: "Diaphragm_FIRM_hvg.h5ad"
+    eye: "Eye_retina_FIRM_hvg.h5ad"
+    fat: "Fat_FIRM_hvg.h5ad"
+    gut: "Small_intestine_FIRM_hvg.h5ad"
     heart: "Heart_FIRM_hvg.h5ad"
     kidney: "Kidney_FIRM_hvg.h5ad"
+    liver: "Liver_FIRM_hvg.h5ad"
     lung: "Lung_FIRM_hvg.h5ad"
+    mammary: "Mammary_gland_FIRM_hvg.h5ad"
+    marrow: "Bone_marrow_FIRM_hvg.h5ad"
+    muscle: "Limb_muscle_FIRM_hvg.h5ad"
     pancreas: "Pancreas_FIRM_hvg.h5ad"
+    skin: "Skin_FIRM_hvg.h5ad"
+    spleen: "Spleen_FIRM_hvg.h5ad"
+    testis: "Testes_FIRM_hvg.h5ad"
+    thymus: "Thymus_FIRM_hvg.h5ad"
     tongue: "Tongue_FIRM_hvg.h5ad"
+    trachea: "Trachea_FIRM_hvg.h5ad"
+    uterus: "Uterus_FIRM_hvg.h5ad"
 
   normalisation: "cptt+log"
   feature_sequences:
@@ -24,6 +41,8 @@ gene_expression:
       'endothelial',
       'immune cell',
       'lymphocyte',
+      'stromal cell',
+      'mesenchymal stem cell',
     ]
 
     subannotation_kwargs:
@@ -37,6 +56,20 @@ gene_expression:
           'neutrophil': ['S100A8', 'S100A9', 'STFA1', 'STFA2']
           'erythrocyte': ['BETA-S', 'ALAS2', 'HBB-B2', 'TMEM14C']
           '': ['SNRPF']
+
+        'stromal cell':
+          'pericyte': ['PDGFRB', 'TIMP2']
+          'fibroblast': ['COL1A1', 'COL1A2', 'COL6A2', 'COL3A1', 'COL6A1', 'GPC3',
+                         'HEBP2', 'SVEP1', 'SCARA5', 'C1S', 'C1R', 'C3', 'PODN']
+          'smooth muscle': ['MYH7', 'ACTA2', 'MYL9']
+          '': ['RPL11', 'RPS6', 'PRDX6', 'IFITM1', 'SPARCL1', 'APOE']
+
+        'mesenchymal stem cell':
+          'pericyte': ['PDGFRB', 'TIMP2']
+          'fibroblast': ['COL1A1', 'COL1A2', 'COL6A2', 'COL3A1', 'COL6A1', 'GPC3',
+                         'HEBP2', 'SVEP1', 'SCARA5', 'C1S', 'C1R', 'C3', 'PODN']
+          'smooth muscle': ['MYH7', 'ACTA2', 'MYL9']
+          '': ['RPL11', 'RPS6', 'PRDX6', 'IFITM1', 'SPARCL1', 'APOE']
 
       bad_prefixes: [
         'RPL', 'RPS', 'LINC', 'MT', 'EPAS1', 'DYNLL1',
@@ -124,14 +157,57 @@ cell_annotations:
       'skeletal muscle satellite stem cell': 'satellite'
       'tendon cell': 'tendon'
       'fast muscle cell': 'striated muscle'
+      'bladder urothelial cell': 'urothelial'
+      'myelinating schwann cell': 'schwann'
+      'non-myelinating schwann cell': 'schwann'
+      'smooth muscle cell': 'smooth muscle'
+      'gabaergic neuron': 'neuron'
+      'glutamatergic neuron': 'neuron'
+      'oligodendrocyte precursor cell': 'opc'
+      'ependymal cell': 'ependymal'
+      'choroid plexus epithelial cell': 'ependymal'
+      'leptomeningeal cell': 'leptomeningeal'
+      'retinal rod cell': 'photoreceptor'
+      'retinal cone cell': 'photoreceptor'
+      'on-bipolar cell': 'bipolar'
+      'off-bipolar cell': 'bipolar'
+      'muller cell': 'muller'
+      'retina horizontal cell': 'horizontal'
+      'retinal bipolar neuron': 'neuron'
+      'epithelial cell': 'epithelial'
+      'enterocyte of epithelium of small intestine': 'enterocyte'
+      'epithelial cell of small intestine': 'epithelial'
+      'small intestine goblet cell': 'goblet'
+      'm cell of gut': 'm'
+      'intestinal tuft cell': 'tuft'
+      'interstitial cell of cajal': 'cajal'
+      'purkinje myocyte': 'cardiomyocyte'
+      'endothelial cell of hepatic sinusoid': 'capillary'
+      'intrahepatic bile duct epithelial cell': 'ductal'
+      'slow muscle cell': 'striated muscle'
+      'basal cell of epidermis': 'basal'
+      'epidermal cell': 'epidermal'
+      'hair follicle cell': 'hair follicular'
+      'epithelial cell of sweat gland': 'sweat'
+      'basal cell of epithelium of trachea': 'basal'
+      'secretory cell': 'mucous'
+      'brush cell of trachea': 'brush'
+      'ciliated cell': 'ciliated'
+      'lung neuroendocrine cell': 'neuroendocrine'
+      'epithelial cell of uterus': 'epithelial'
+      'unknown': ''
 
   blacklist:
-    marrow: ['lymphocyte', 'type II pneumocyte']
-    heart: ['type II pneumocyte']
+    blood: ['epithelial cell']
+    diaphragm: ['lymphocyte', 'mesenchymal stem cell']
+    fat: ['urothelial cell', 'granulosa cell']
+    marrow: ['lymphocyte', 'type ii pneumocyte']
+    heart: ['type ii pneumocyte']
     kidney: ['stromal cell', 'urothelial cell']
     lung: ['epithelial cell of uterus']
     pancreas: ['stromal cell', 'pancreatic endocrine cell']
     tongue: ['stromal cell', 'pancreatic endocrine cell']
+    thymus: ['lymphocyte']
 
   cell_supertypes:
     immune: [
@@ -184,10 +260,17 @@ cell_annotations:
       'serous',
       'mucous',
       'squamous',
+      'tuft',
       'intercalated',
       'principal',
       'macula densa',
       'urothelial',
+      'ependymal',
+      'm',
+      'epidermal',
+      'hair follicular',
+      'sweat',
+      'melanocyte',
     ]
 
     endothelial: [
@@ -198,6 +281,7 @@ cell_annotations:
       'CAP2',
       'lymphatic',
       'glomerular',
+      'leptomeningeal',
     ]
 
     mesenchymal: [
@@ -217,10 +301,15 @@ cell_annotations:
       'preosteoblast',
       'osteoblast',
       'adipocyte',
+      'chondrocyte',
+      'cajal',
     ]
 
     other: [
       'neuron',
+      'astrocyte',
+      'oligodendrocyte',
+      'opc',
       'enteroendocrine',
       'hepatocyte',
       'ionocyte',
@@ -229,6 +318,14 @@ cell_annotations:
       'PP',
       'delta',
       'schwann',
+      'muller',
+      'photoreceptor',
+      'bipolar',
+      'horizontal',
+      'spermatid',
+      'spermatocyte',
+      'spermatogonium',
+      'neuroendocrine',
     ]
 
   supertype_order: [
