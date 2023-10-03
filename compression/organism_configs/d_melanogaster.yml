@@ -1,0 +1,82 @@
+measurement_types: [
+  "gene_expression",
+]
+
+gene_expression:
+  path:
+    antenna: "s_fca_biohub_antenna_10x.h5ad"
+    fat: "s_fca_biohub_fat_body_10x.h5ad"
+    gut: "s_fca_biohub_gut_10x.h5ad"
+    haltere: "s_fca_biohub_haltere_10x.h5ad"
+    heart: "s_fca_biohub_heart_10x.h5ad"
+    leg: "s_fca_biohub_leg_10x.h5ad"
+    male_reproductive: "s_fca_biohub_male_reproductive_glands_10x.h5ad"
+    malpighian: "s_fca_biohub_malpighian_tubule_10x.h5ad"
+    oenocyte: "s_fca_biohub_oenocyte_10x.h5ad"
+    ovary: "s_fca_biohub_ovary_10x.h5ad"
+    proboscis: "s_fca_biohub_proboscis_and_maxillary_palps_10x.h5ad"
+    testis: "r_fca_biohub_testis_10x.h5ad"
+    trachea: "s_fca_biohub_trachea_10x.h5ad"
+    wall: "s_fca_biohub_body_wall_10x.h5ad"
+    wing: "s_fca_biohub_wing_10x.h5ad"
+
+  normalisation: 'to-raw+cptt+log'
+
+  cell_annotations:
+    column: ["R_annotation_broad", "S_annotation_broad"]
+
+  filter_cells:
+    unannotated: ["unannotated", "artefact"]
+
+cell_annotations:
+  rename_dict:
+    cell_types:
+      'sensory neuron': 'neuron'
+      'epithelial cell': 'epithelial'
+      'glial cell': 'glial'
+      'muscle cell': 'muscle'
+      'fat cell': 'adipocyte'
+      'somatic precursor cell': 'stem cell'
+      'gland': 'gland cell'
+      'cardial cell': 'cardial'
+      'tracheolar cell': 'tracheolar'
+      'male germline cell': 'male germline'
+      'female germline cell': 'female germline'
+
+  blacklist:
+    fat: ["female reproductive system", "male reproductive system"]
+    heart: ["excretory system"]
+    male_reproductive: ["male reproductive system"]
+
+  cell_supertypes:
+    immune: [
+      'hemocyte',
+      'glial',
+    ]
+
+    epithelial: [
+      'epithelial',
+      'tracheolar',
+    ]
+
+    mesenchymal: [
+      'adipocyte',
+      'muscle',
+      'cardial',
+      'oenocyte',
+    ]
+
+    other: [
+      'neuron',
+      'stem cell',
+      'pigment cell',
+      'gland cell',
+      'male germline',
+      'female germline',
+      'ovary'
+    ]
+
+  supertype_order: ["immune", "epithelial", "mesenchymal", "other"]
+
+notes:
+    'body: "s_fca_biohub_body_10x.h5ad" removed for now (too big)' 

@@ -128,7 +128,7 @@ chromatin_accessibility:
     backed: "r"
 
   filter_cells_global:
-    metadata: ["Life stage", "Adult"]
+    metadata: ["Life stage", "==", "Adult"]
 
   filter_cells:
     min_cells_per_type: 10
@@ -687,7 +687,6 @@ cell_annotations:
       'corneal',
       'cholangiocyte',
       'mTEC',
-      'm',
     ]
 
     'endothelial': [

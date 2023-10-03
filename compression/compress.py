@@ -40,7 +40,7 @@ if __name__ == '__main__':
         # Multi-organ species
         #'h_sapiens',  #FIXME
         #'m_musculus',
-        'm_murinus',
+        #'m_murinus',
         'd_melanogaster',
         'x_laevis',
 
@@ -133,7 +133,7 @@ if __name__ == '__main__':
                     adata_tissue.obs = meta_tissue.copy()
 
                 print("Filter cells")
-                adata_tissue = filter_cells(adata_tissue, config_mt["filter_cells"])
+                adata_tissue = filter_cells(adata_tissue, config_mt)
 
                 print("Normalise")
                 adata_tissue = normalise_counts(
@@ -158,6 +158,10 @@ if __name__ == '__main__':
                 compressed_atlas[tissue] = compress_tissue(
                     adata_tissue, celltype_order,
                 )
+
+                print('Garbage collect at the end of tissue')
+                del adata_tissue
+                gc.collect()
 
             # TODO: harmonise across tissues, sometimes (e.g. fly) that is not a given
             features = adata_tissue.var_names

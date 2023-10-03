@@ -95,6 +95,8 @@ def filter_cells(adata, config_mt):
     if len(filter_dict) == 0:
         return adata
 
+    ncells_orig = adata.shape[0]
+
     if "min_cells_per_type" in filter_dict:
         nmin = filter_dict["min_cells_per_type"]
 
@@ -102,6 +104,30 @@ def filter_cells(adata, config_mt):
         ct_counts = adata.obs[column].value_counts()
         ct_abundant = ct_counts.index[ct_counts >= nmin]
         adata = adata[adata.obs[column].isin(ct_abundant)]
+
+    if "unannotated" in filter_dict:
+        unanno_values = filter_dict["unannotated"]
+        if isinstance(unanno_values, str):
+            unanno_values = [unanno_values]
+
+        column = config_mt["cell_annotations"]["column"]
+        # If a list is given, take the first one you find or fail
+        if not isinstance(column, str):
+            columns = column
+            for column in columns:
+                if column in adata.obs.columns:
+                    break
+            else:
+                raise ValueError(
+                    f"None of the cell annotation columns found: {columns}",
+                )
+        adata = adata[~adata.obs[column].isin(unanno_values)]
+
+    ncells_new = adata.shape[0]
+
+    if ncells_new < ncells_orig:
+        delta = ncells_orig - ncells_new
+        print(f'Filtered out {delta} cells, originally {ncells_orig} cells, {ncells_new} remaining')
 
     return adata
 
@@ -260,6 +286,17 @@ def correct_annotations(
     subannotation_kwargs=None,
 ):
     '''Correct cell types in each tissue according to known dict'''
+    # If a list is given, take the first one you find or fail
+    if not isinstance(column, str):
+        columns = column
+        for column in columns:
+            if column in adata.obs.columns:
+                break
+        else:
+            raise ValueError(
+                f"None of the cell annotation columns found: {columns}",
+            )
+
     # Ignore cells with NaN in the cell.type column
     idx = adata.obs[column].isin(
             adata.obs[column].value_counts().index)
@@ -647,13 +684,13 @@ def normalise_counts(adata_tissue, input_normalisation, measurement_type="gene_e
     """Normalise counts no matter what the input normalisation is."""
     if measurement_type == "gene_expression":
         if input_normalisation not in (
-                "cptt", "raw", "cpm", "cpm+log", "cptt+log", "to-raw"):
+                "cptt", "raw", "cpm", "cpm+log", "cptt+log", "to-raw", "to-raw+cptt+log"):
             raise ValueError("Input normalisation not recognised: {input_normalisation}")
 
-        if input_normalisation in ("to-raw",):
+        if input_normalisation in ("to-raw", "to-raw+cptt+log"):
             adata_tissue = adata_tissue.raw.to_adata()
 
-        if input_normalisation in ("cpm+log", "cptt+log"):
+        if input_normalisation in ("cpm+log", "cptt+log", "to-raw+cptt+log"):
             adata_tissue.X = np.expm1(adata_tissue.X)
 
         if input_normalisation in ("raw", "cpm", "cpm+log", "to-raw"):
