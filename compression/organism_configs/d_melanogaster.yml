@@ -25,6 +25,18 @@ gene_expression:
   cell_annotations:
     column: ["R_annotation_broad", "S_annotation_broad"]
 
+    require_subannotation: [
+      'excretory system',
+    ]
+
+    subannotation_kwargs:
+      markers:
+        'excretory system':
+          'stellate': ['Drip']
+          'renal stem': ['esg', 'Dl', 'Sox21a']
+          'principal': ['Uro', 'salt', 'cad', 'Glut1', 'Pvr']
+
+
   filter_cells:
     unannotated: ["unannotated", "artefact"]
 
@@ -57,6 +69,7 @@ cell_annotations:
     epithelial: [
       'epithelial',
       'tracheolar',
+      'stellate',
     ]
 
     mesenchymal: [
@@ -64,6 +77,7 @@ cell_annotations:
       'muscle',
       'cardial',
       'oenocyte',
+      'principal',
     ]
 
     other: [

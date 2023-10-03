@@ -109,6 +109,9 @@ if __name__ == '__main__':
             else:
                 tissues = config_mt["tissues"]
 
+            # FIXME
+            tissues = ['malpighian']
+
             # Iterate over tissues
             for tissue in tissues:
                 print(tissue)

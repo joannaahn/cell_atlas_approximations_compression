@@ -189,7 +189,7 @@ def get_tissue_data_dict(species, atlas_folder, rename_dict=None):
 def subannotate(adata,
                 species, annotation,
                 markers,
-                bad_prefixes,
+                bad_prefixes=None,
                 verbose=True,
                 trash_unknown=True,
                 skip_subannotation=False):
@@ -377,12 +377,19 @@ def get_celltype_order(celltypes_unordered, celltype_order):
             if celltype in celltypes_unordered:
                 celltypes_ordered.append(celltype)
 
+    celltypes_found = []
     missing_celltypes = False
     for celltype in celltypes_unordered:
         if celltype not in celltypes_ordered:
             if not missing_celltypes:
                 missing_celltypes = True
                 print('Missing celltypes:')
+            print(celltype)
+        else:
+            celltypes_found.append(celltype)
+    if missing_celltypes:
+        print('Cell types found:')
+        for celltype in celltypes_found:
             print(celltype)
 
     if missing_celltypes:
