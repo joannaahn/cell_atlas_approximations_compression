@@ -23,18 +23,7 @@ gene_expression:
   normalisation: 'to-raw+cptt+log'
 
   cell_annotations:
-    column: ["R_annotation_broad", "S_annotation_broad"]
-
-    require_subannotation: [
-      'excretory system',
-    ]
-
-    subannotation_kwargs:
-      markers:
-        'excretory system':
-          'stellate': ['Drip']
-          'renal stem': ['esg', 'Dl', 'Sox21a']
-          'principal': ['Uro', 'salt', 'cad', 'Glut1', 'Pvr']
+    column: ["R_annotation", "S_annotation"]
 
 
   filter_cells:
@@ -55,39 +44,312 @@ cell_annotations:
       'male germline cell': 'male germline'
       'female germline cell': 'female germline'
 
+      'johnston organ neuron': 'neuron'
+      'adult antenna glial cell': 'glial'
+      'adult olfactory receptor neuron unknown type, orco+': 'neuron'
+      'adult olfactory receptor neuron or67a and likely other unknown orn types': 'neuron'
+      'adult olfactory receptor neuron or47a, or56a and likely other orn types': 'neuron'
+      'olfactory receptor neuron, coeloconics': 'neuron'
+      'adult olfactory receptor neuron or22a, or42b, or59b': 'neuron'
+      'adult olfactory receptor neuron or67d': 'neuron'
+      'adult olfactory receptor neuron ir75d': 'neuron'
+      'adult olfactory receptor neuron gr21a/63a': 'neuron'
+      'adult olfactory receptor neuron or88a': 'neuron'
+      'adult olfactory receptor neuron ir84a, ir31a, ir76a, ir76b, ir8a, or35a': 'neuron'
+      'adult olfactory receptor neuron or47b': 'neuron'
+      'adult olfactory receptor neuron or65': 'neuron'
+      'adult olfactory receptor neuron or92a': 'neuron'
+      'sacculus/arista neuron': 'neuron'
+      'adult olfactory receptor neuron or85a, or43b': 'neuron'
+      'adult olfactory receptor neuron acid-sensing, ir75a/b/c, ir64a': 'neuron'
+      'adult olfactory receptor neuron ir56a+, orco-': 'neuron'
+      'adult olfactory receptor neuron unknown type, orco-': 'neuron'
+      'arista and sacculus thermosensory and hygrosensory neuron ir21a, ir40a, gr28b': 'neuron'
+      'adult olfactory receptor neuron or83c and or82a': 'neuron'
+      'adult olfactory receptor neuron acid-sensing, ir64a': 'neuron'
+      'adult olfactory receptor neuron or13a': 'neuron'
+      'adult glial cell': 'glial'
+
+      'adult fat body': 'adipocyte'
+      'adult oenocyte': 'oenocyte'
+      'hemocyte*': 'hemocyte'
+      'adult neuron': 'neuron'
+      'adult alary muscle': 'muscle'
+
+      'enterocyte of anterior adult midgut epithelium': 'enterocyte'
+      'enterocyte of posterior adult midgut epithelium': 'enterocyte'
+      'antimicrobial peptide-producing cell': 'antimicrobial'
+      'intestinal stem cell': 'stem'
+      'midgut large flat cell': 'flat'
+      'adult differentiating enterocyte': 'enterocyte'
+      'visceral muscle of the midgut': 'muscle'
+      'adult midgut enterocyte': 'enterocyte'
+      'enteroblast': 'enteroblast'
+      'visceral muscle of the crop': 'muscle'
+      'adult pylorus': 'pylorus'
+      'enteroendocrine cell': 'enteroendocrine'
+      'copper cell': 'copper'
+
+      'mechanosensory neuron of haltere': 'neuron'
+      'neuron of haltere': 'neuron'
+
+      'adult heart ventral longitudinal muscle': 'muscle'
+      'adult abdominal pericardial cell': 'pericardial'
+      'adult peripheral neuron of the heart': 'neuron'
+      'cardiomyocyte, working adult heart muscle (non-ostia)': 'cardiomyocyte'
+      'crystal cell': 'crystal'
+      'indirect flight muscle': 'muscle'
+      'adult ostium': 'ostium'
+
+      'mechanosensory neuron': 'neuron'
+      'peripheral glial cell': 'glial'
+      'mechanosensory neuron of leg chordotonal organ': 'neuron'
+
+      'male accessory gland main cell': 'main'
+      'ejaculatory bulb': 'bulb'
+      'ejaculatory bulb epithelium': 'epithelial'
+      'anterior ejaculatory duct': 'ductal'
+      'male reproductive tract muscle': 'muscle'
+      'seminal vesicle': 'seminal'
+      'secretory cell of the male reproductive tract': 'secretory'
+      'male accessory gland secondary cell': 'secondary'
+
+      'young germ cell': 'germ'
+      'main body follicle cell ca. until st. 5': 'follicle'
+      'central main body follicle cell ca. st. 6-8': 'follicle'
+      'choriogenic main body follicle cell and corpus luteum': 'follicle'
+      '16-cell germline cyst in germarium region 2a and 2b': 'cyst'
+      'stretch follicle cell': 'follicle'
+      'choriogenic main body follicle cell st. 12': 'follicle'
+      'posterior terminal follicle cell ca. st. 5-8': 'follicle'
+      'germ cell stage 4 and later': 'germ'
+      'post-mitotic germ cell early 16-cell cyst': 'cyst'
+      'follicle stem cell and prefollicle cell': 'stem'
+      'choriogenic main body follicle cell st. 14': 'follicle'
+      'ovarian sheath muscle': 'muscle'
+      'post-mitotic endocycling nurse cell': 'nurse'
+      'escort cell': 'escort'
+      'germline cell, unknown stage': 'germ'
+      'dorsal appendage forming follicle cell': 'follicle'
+      'stalk follicle cell': 'follicle'
+      'polar follicle cell': 'follicle'
+
+      'adult malpighian tubule principal cell of lower segment': 'principal'
+      'adult renal stem cell': 'stem'
+      'adult malpighian tubule principal cell': 'principal'
+      'adult malpighian tubule stellate cell of main segment': 'stellate'
+      'adult malpighian tubule principal cell of initial segment': 'principal'
+      'salivary gland': 'salivary'
+      'adult malpighian tubule principal cell of lower ureter': 'principal'
+      'adult malpighian tubule bar-shaped cell of initial segment': 'bar-shaped'
+      'principal cell*': 'principal'
+      'adult malpighian tubule principal cell subtype': 'principal'
+
+      'adult peripheral nervous system': 'neuron'
+      'maxillary palp olfactory receptor neuron': 'neuron'
+      'adult esophagus': 'esophagus'
+      'tormogen cell': 'tormogen'
+      'maxillary palpus': 'palpus'
+      'labral sense organ mechanosensory neuron': 'neuron'
+      'bitter-sensitive labellar taste bristle': 'bristle'
+      'gustatory receptor neuron of the labellum': 'neuron'
+
+      'male gonad associated epithelium': 'epithelial'
+      'early elongation stage spermatid': 'spermatid'
+      'mid-late elongation-stage spermatid': 'spermatid'
+      'cyst cell intermediate': 'cyst'
+      'head cyst cell': 'cyst'
+      'spermatocyte 0': 'spermatocyte'
+      'early-mid elongation-stage spermatid': 'spermatid'
+      'early cyst cell 1': 'cyst'
+      'spermatocyte 7a': 'spermatocyte'
+      'spermatocyte 1': 'spermatocyte'
+      'spermatocyte 2': 'spermatocyte'
+      'pigment cell': 'spermatocyte'
+      'spermatocyte cyst cell branch a': 'cyst'
+      'mid-late proliferating spermatogonia': 'spermatogonium'
+      'spermatocyte 3': 'spermatocyte'
+      'early cyst cell 2': 'cyst'
+      'late primary spermatocyte': 'spermatocyte'
+      'late cyst cell branch b': 'cyst'
+      'cyst stem cell': 'stem'
+      'cyst cell branch b': 'cyst'
+      'cyst cell branch a': 'cyst'
+      'spermatocyte 6': 'spermatocyte'
+      'spermatocyte 5': 'spermatocyte'
+      'spermatocyte cyst cell branch b': 'cyst'
+      'late cyst cell branch a': 'cyst'
+      'spermatocyte 4': 'spermatocyte'
+
+      'adult tracheocyte': 'tracheocyte'
+
+      'epidermal cell that specialized in antimicrobial response': 'epidermal'
+      'adult ventral nervous system': 'neuron'
+      'tendon cell': 'tendon'
+      'epidermal cell of the abdominal posterior compartment': 'epidermal'
+
+      'pheromone-sensing neuron': 'neuron'
+      'gustatory receptor neuron': 'neuron'
+      'nociceptive neuron': 'neuron'
+
   blacklist:
-    fat: ["female reproductive system", "male reproductive system"]
-    heart: ["excretory system"]
-    male_reproductive: ["male reproductive system"]
+    fat: [
+      'ovary cell',
+      'testis',
+      'male germline differentiating cell',
+      'male accessory gland',
+      'malpighian tubule',
+      'female reproductive system',
+    ]
+    gut: [
+      'male accessory gland',
+      'malpighian tubule',
+      'cardia (1)',
+      'cardia (2)',
+      'adult midgut-hindgut hybrid zone',
+      'enterocyte-like',
+    ]
+    heart: [
+      'adult malpighian tubule',
+      'adult salivary gland',
+      'adult tracheocyte'
+    ]
+
+    leg: [
+      'gustatory receptor neuron',
+      'adult tracheocyte',
+    ]
+
+    male_reproductive: [
+      'adult tracheocyte',
+    ]
+
+    malpighian: [
+      'posterior midgut*',
+      'adult tracheocyte',
+      'adult fat body',
+      'adult midgut*',
+      'visceral muscle',
+      'adult hindgut',
+      'adult hindgut*',
+      'midgut',
+      'adult oenocyte',
+    ]
+
+    oenocyte: [
+      'ovary cell',
+      'adult enterocyte',
+      'cardial cell',
+      'adult heart',
+      'male accessory gland',
+      'adult tracheocyte',
+      'ejaculatory bulb',      
+    ]
+
+    ovary: [
+      'adult tracheocyte',
+    ]
+
+    proboscis: [
+      'adult tracheocyte',
+      'photoreceptor',
+    ]
+
+    testis: [
+      'adult tracheal cell',
+      'spermatogonium-spermatocyte transition',
+    ]
+
+    trachea: [
+      'btl-gal4 positive female cell, cluster 1, likely to be ovary cell',
+      'btl-gal4 positive female cell, likely to be ovary cell, sim+',
+      'btl-gal4 positive female cell, cluster 2, likely to be ovary cell',
+      'btl-gal4 positive female cell, likely to be ovary cell, sim+, h15+',
+      'male accessory gland',
+      'btl-gal4 positive female cell, cluster 3, likely to be ovary cell',
+      'eye photoreceptor cell',
+    ]
+
+    wall: [
+      'midgut',
+      'ovary cell',
+      'testis',      
+    ]
 
   cell_supertypes:
     immune: [
       'hemocyte',
       'glial',
+      'antimicrobial',
     ]
 
     epithelial: [
       'epithelial',
-      'tracheolar',
+      'epidermal',
+      'tracheocyte',
       'stellate',
+      'bar-shaped',
+      'crop',
+      'copper',
+      'ductal',
+      'oviduct',
+      'enterocyte',
+      'enteroblast',
+      'pylorus',
+      'flat',
+      'main',
+      'secondary',
+      'follicle',
+      'cyst',
+      'esophagus',
+      'bristle',
+      'tormogen',
+      'palpus',
     ]
 
     mesenchymal: [
       'adipocyte',
+      'tendon',
       'muscle',
-      'cardial',
+      'cardiomyocyte',
+      'pericardial',
+      'ostium',
       'oenocyte',
       'principal',
     ]
 
     other: [
       'neuron',
-      'stem cell',
-      'pigment cell',
-      'gland cell',
+      'stem',
+      'germ',
+      'pigment',
+      'gland',
       'male germline',
       'female germline',
-      'ovary'
+      'salivary',
+      'ovary',
+      'enteroendocrine',
+      'crystal',
+      'bulb',
+      'seminal',
+      'secretory',
+      'spermatid',
+      'spermatocyte',
+      'spermatogonium',
+      'nurse',
+      'escort',
+    ]
+
+    oenocyte: [
+      'ovary cell',
+      'adult tracheocyte',
+      'adult enterocyte',
+      'cardial',
+      'adult heart',
+    ]
+
+    ovary: [
+      'adult tracheocyte',
     ]
 
   supertype_order: ["immune", "epithelial", "mesenchymal", "other"]

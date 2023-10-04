@@ -109,9 +109,6 @@ if __name__ == '__main__':
             else:
                 tissues = config_mt["tissues"]
 
-            # FIXME
-            tissues = ['malpighian']
-
             # Iterate over tissues
             for tissue in tissues:
                 print(tissue)
@@ -129,47 +126,50 @@ if __name__ == '__main__':
                     else:
                         adata_tissue = adata[adata.obs['tissue'] == tissue]
 
-                if ("load_params" in config_mt) and ("backed" in config_mt["load_params"]):
-                    adata_tissue = adata_tissue.to_memory()
-                
-                if "path_metadata_global" in config_mt:
-                    adata_tissue.obs = meta_tissue.copy()
+                try:
+                    if ("load_params" in config_mt) and ("backed" in config_mt["load_params"]):
+                        adata_tissue = adata_tissue.to_memory()
+                    
+                    if "path_metadata_global" in config_mt:
+                        adata_tissue.obs = meta_tissue.copy()
 
-                print("Filter cells")
-                adata_tissue = filter_cells(adata_tissue, config_mt)
+                    print("Filter cells")
+                    adata_tissue = filter_cells(adata_tissue, config_mt)
 
-                print("Normalise")
-                adata_tissue = normalise_counts(
-                    adata_tissue,
-                    config_mt['normalisation'],
-                    measurement_type,
-                )
+                    print("Normalise")
+                    adata_tissue = normalise_counts(
+                        adata_tissue,
+                        config_mt['normalisation'],
+                        measurement_type,
+                    )
 
-                print("Correct cell annotations")
-                adata_tissue = correct_annotations(
-                    adata_tissue,
-                    config_mt['cell_annotations']['column'],
-                    species,
-                    tissue,
-                    config_mt['cell_annotations']['rename_dict'],
-                    config_mt['cell_annotations']['require_subannotation'],
-                    blacklist=config_mt['cell_annotations']['blacklist'],
-                    subannotation_kwargs=config_mt['cell_annotations']['subannotation_kwargs'],
-                )
+                    print("Correct cell annotations")
+                    adata_tissue = correct_annotations(
+                        adata_tissue,
+                        config_mt['cell_annotations']['column'],
+                        species,
+                        tissue,
+                        config_mt['cell_annotations']['rename_dict'],
+                        config_mt['cell_annotations']['require_subannotation'],
+                        blacklist=config_mt['cell_annotations']['blacklist'],
+                        subannotation_kwargs=config_mt['cell_annotations']['subannotation_kwargs'],
+                    )
 
-                print("Compress atlas")
-                compressed_atlas[tissue] = compress_tissue(
-                    adata_tissue, celltype_order,
-                )
+                    print("Compress atlas")
+                    compressed_atlas[tissue] = compress_tissue(
+                        adata_tissue, celltype_order,
+                    )
 
-                print('Garbage collect at the end of tissue')
-                del adata_tissue
-                gc.collect()
+                    print('Get features')
+                    # TODO: harmonise across tissues, sometimes (e.g. fly) that is not a given
+                    features = adata_tissue.var_names
 
-            # TODO: harmonise across tissues, sometimes (e.g. fly) that is not a given
-            features = adata_tissue.var_names
+                finally:
+                    print('Garbage collect at the end of tissue')
+                    # FIXME: this is not working properlyl in case of exceptions
+                    del adata_tissue
+                    gc.collect()
 
-            del adata_tissue
             if "path_global" in config_mt:
                 del adata
             if "path_metadata_global" in config_mt:
