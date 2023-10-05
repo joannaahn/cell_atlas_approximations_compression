@@ -20,17 +20,16 @@ from utils import (
     load_config,
     root_repo_folder,
     output_folder,
-    get_tissue_data_dict,
     subannotate,
+    filter_cells,
     normalise_counts,
     correct_annotations,
     get_celltype_order,
     compress_tissue,
-    collect_feature_annotations,
+    store_compressed_atlas,
     collect_feature_sequences,
     store_compressed_feature_sequences,
-    store_compressed_atlas,
-    filter_cells,
+    collect_feature_annotations,
     )
 
 
@@ -41,19 +40,19 @@ if __name__ == '__main__':
         #'h_sapiens',  #FIXME
         #'m_musculus',
         #'m_murinus',
-        'd_melanogaster',
-        'x_laevis',
+        #'d_melanogaster',
+        #'x_laevis',
 
         # Single-organ species
-        'l_minuta',
-        'h_miamia',
-        'a_queenslandica',
-        'c_elegans',
-        'i_pulchra',
-        'a_queenslandica',
-        'd_rerio',
-        't_adhaerens',
-        's_mediterranea',
+        #'l_minuta',
+        #'h_miamia',
+        #'a_queenslandica',
+        #'c_elegans',
+        #'i_pulchra',
+        #'a_queenslandica',
+        #'d_rerio',
+        #'t_adhaerens',
+        #'s_mediterranea',
         's_mansoni',
         's_lacustris',
         'm_leidyi',
@@ -92,8 +91,17 @@ if __name__ == '__main__':
                 meta = pd.read_csv(config_mt["path_metadata_global"], sep='\t', index_col=0).loc[adata.obs_names]
 
                 if ("filter_cells_global" in config_mt) and ("metadata" in config_mt["filter_cells_global"]):
-                    column, value = config_mt["filter_cells_global"]["metadata"]
-                    meta = meta.loc[meta[column] == value]
+                    column, condition, value = config_mt["filter_cells_global"]["metadata"]
+                    if condition == '==':
+                        meta = meta.loc[meta[column] == value]
+                    elif condition == '!=':
+                        meta = meta.loc[meta[column] != value]
+                    elif condition == 'isin':
+                        meta = meta.loc[meta[column].isin(value)]
+                    elif condition == 'notin':
+                        meta = meta.loc[~meta[column].isin(value)]
+                    else:
+                        raise ValueError(f'Filtering condition not recognised: {condition}')
 
                 if 'tissues' in config_mt['cell_annotations']['rename_dict']:
                     tissues_raw = meta['tissue'].value_counts().index.tolist()
@@ -104,10 +112,34 @@ if __name__ == '__main__':
 
                 tissues = meta['tissue'].value_counts().index.tolist()
                 tissues = sorted([t for t in tissues if t != ''])
-            elif "path_global" not in config_mt:
-                tissues = sorted(config_mt["path"].keys())
             else:
-                tissues = config_mt["tissues"]
+                if "path_global" not in config_mt:
+                    tissues = sorted(config_mt["path"].keys())
+                else:
+                    if ("filter_cells_global" in config_mt) and ("metadata" in config_mt["filter_cells_global"]):
+                        column, condition, value = config_mt["filter_cells_global"]["metadata"]
+                        if condition == '==':
+                            adata = adata[adata.obs[column] == value]
+                        elif condition == '!=':
+                            adata = adata[adata.obs[column] != value]
+                        elif condition == 'isin':
+                            adata = adata[adata.obs[column].isin(value)]
+                        elif condition == 'notin':
+                            adata = adata[~adata.obs[column].isin(value)]
+                        else:
+                            raise ValueError(f'Filtering condition not recognised: {condition}')
+                    if 'tissues' in config_mt:
+                        tissues = config_mt["tissues"]
+                    else:
+                        if 'tissues' in config_mt['cell_annotations']['rename_dict']:
+                            tissues_raw = adata.obs['tissue'].value_counts().index.tolist()
+                            tdict = config_mt['cell_annotations']['rename_dict']['tissues']
+                            tmap = {t: tdict.get(t, t) for t in tissues_raw}
+                            adata.obs['tissue'] = adata.obs['tissue'].map(tmap)
+                            del tdict, tmap
+
+                        tissues = adata.obs['tissue'].value_counts().index.tolist()
+                        tissues = sorted([t for t in tissues if t != ''])
 
             # Iterate over tissues
             for tissue in tissues:

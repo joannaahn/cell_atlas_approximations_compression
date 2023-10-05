@@ -13,7 +13,7 @@ gene_expression:
     rename_dict:
       cell_types:
         'Unclassified glia': 'glia'
-        'gABAergic neurons': 'GABAergic neuron'
+        'gabaergic neurons': 'GABAergic neuron'
         'am/ph sheath cells': 'sheath'
         'pharyngeal epithelia': 'pharyngeal epi'
         'distal tip cells': 'distal tip'
@@ -28,7 +28,7 @@ gene_expression:
         'touch receptor neurons': 'touch receptor neuron'
         'pharyngeal neurons': 'pharyngeal neuron'
         'oxygen sensory neurons': 'oxygen sensory neuron'
-        'flp-1(+) interneurons': 'flp-1(+) interneuron'
+        'flp-1(+) interneurons': 'interneuron'
         'other interneurons': 'neuron'
         'vulval precursors': 'vulval precursor'
         'coelomocytes': 'coelomocyte'
@@ -78,7 +78,7 @@ cell_annotations:
         'touch receptor neuron',
         'pharyngeal neuron',
         'oxygen sensory neuron',
-        'flp-1(+) interneuron',
+        'interneuron',
         'neuron',
         'germline',
         'somatic gonad',

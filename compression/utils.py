@@ -38,9 +38,6 @@ def load_config(species):
     for mt in config["measurement_types"]:
         config_mt = config[mt]
 
-        if "tissues" not in config_mt:
-            config_mt["tissues"] = ["whole"]
-
         if ("path" not in config_mt) and ("path_global" not in config_mt):
             config_mt["path"] = species + '.h5ad'
 
@@ -130,60 +127,6 @@ def filter_cells(adata, config_mt):
         print(f'Filtered out {delta} cells, originally {ncells_orig} cells, {ncells_new} remaining')
 
     return adata
-
-
-def get_tissue_data_dict(species, atlas_folder, rename_dict=None):
-    
-    result = []
-
-    fns = os.listdir(atlas_folder)
-    fns = [x for x in fns if x.endswith('.h5ad')]
- 
-    for filename in fns:
-        if species == 'mouse':
-            tissue = filename.split('_')[-1].split('.')[0]
-        elif species == 'human':
-            tissue = filename[3:-5]
-        elif species == 'lemur':
-            tissue = filename[:-len('_FIRM_hvg.h5ad')].replace('_', ' ').title()
-        elif species in ('c_elegans', 'd_rerio', 's_lacustris',
-                         'a_queenslandica', 'm_leidyi', 't_adhaerens'):
-            tissue = 'whole'
-        elif species == "d.melanogaster":
-            tissue = filename.split('_')[1].split('.')[0]
-        else:
-            raise ValueError('species not found: {:}'.format(species))
-
-        if rename_dict is not None:
-            tissue = rename_dict['tissues'].get(tissue, tissue)
-            
-        if species == "d.melanogaster":
-            result.append({
-                'tissue': tissue,
-                'filename_count': filename,
-                'filename_meta': filename.replace('Matrix_', 'Metadata_')[:-3],
-            })
-        else:      
-            result.append({
-                'tissue': tissue,
-                'filename': atlas_folder / filename,
-            })
-    
-    # [{'tissue': 'Tissue', 
-    # 'filename_count': 'ALL_Tissue_Global_Clustering_Scanpy.h5ad', 
-    # 'filename_meta': 'ALL_Tissue_Global_Clustering_Scanpy.h'}
-    # ]
-    print(result)
-    # assigning new value to result
-    result = pd.DataFrame(result).set_index('tissue')
-    
-    if species != "d.melanogaster":
-        result = result['filename']
-
-    # Order tissues alphabetically
-    result = result.sort_index()
-
-    return result
 
 
 def subannotate(adata,
@@ -321,11 +264,16 @@ def correct_annotations(
     # Rename according to standard dict
     if 'cell_types' in rename_dict:
         for ctraw, celltype in rename_dict['cell_types'].items():
-            if isinstance(ctraw, str):
+            # C. elegans has a cell type called flp-1(+) neurons
+            # There are also things like "gene+ neuron"
+            if isinstance(ctraw, str) and ('+' not in ctraw or '(+)' in ctraw or '+ ' in ctraw):
                 celltypes_new[celltypes_new == ctraw] = celltype
             else:
                 # Organ-specific renames
-                organraw, ctraw = ctraw
+                if isinstance(ctraw, str) and '+' in ctraw:
+                    organraw, ctraw = ctraw.split('+')
+                else:
+                    organraw, ctraw = ctraw
                 if organraw == tissue:
                     celltypes_new[celltypes_new == ctraw] = celltype
 
