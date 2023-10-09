@@ -37,22 +37,22 @@ if __name__ == '__main__':
 
     species_list = [
         # Multi-organ species
-        #'h_sapiens',  #FIXME
-        #'m_musculus',
-        #'m_murinus',
-        #'d_melanogaster',
-        #'x_laevis',
+        'x_laevis',
+        'h_sapiens',
+        'm_musculus',
+        'm_murinus',
+        'd_melanogaster',
 
         # Single-organ species
-        #'l_minuta',
-        #'h_miamia',
-        #'a_queenslandica',
-        #'c_elegans',
-        #'i_pulchra',
-        #'a_queenslandica',
-        #'d_rerio',
-        #'t_adhaerens',
-        #'s_mediterranea',
+        'l_minuta',
+        'h_miamia',
+        'a_queenslandica',
+        'c_elegans',
+        'i_pulchra',
+        'a_queenslandica',
+        'd_rerio',
+        't_adhaerens',
+        's_mediterranea',
         's_mansoni',
         's_lacustris',
         'm_leidyi',
@@ -198,7 +198,7 @@ if __name__ == '__main__':
 
                 finally:
                     print('Garbage collect at the end of tissue')
-                    # FIXME: this is not working properlyl in case of exceptions
+                    # FIXME: this is not working properly in case of exceptions
                     del adata_tissue
                     gc.collect()
 

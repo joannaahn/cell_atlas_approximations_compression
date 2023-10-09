@@ -59,20 +59,20 @@ cell_annotations:
       "goblet cell": "goblet"
       "lens fiber cell": "corneal"
       "epidermal stem cell": "epidermal"
-      "bladder+epithelial cell": "epithelial"
-      "brain+epithelial cell": "epithelial"
-      "gut+epithelial cell": "epithelial"
-      "ovary+cumulus cell": "cumulus"
-      "pancreas+epithelial cell": "ductal"
-      "skin+epithelial cell": "epidermal"
-      "stomach+epithelial cell": "mucous"
-      "eye+epithelial cell": "epithelial"
+      "bladder:epithelial cell": "epithelial"
+      "brain:epithelial cell": "epithelial"
+      "gut:epithelial cell": "epithelial"
+      "ovary:cumulus cell": "cumulus"
+      "pancreas:epithelial cell": "ductal"
+      "skin:epithelial cell": "epidermal"
+      "stomach:epithelial cell": "mucous"
+      "eye:epithelial cell": "epithelial"
       'umbrella cell': "umbrella"
-      "kidney+epithelial cell": "epithelial"
-      "lung+epithelial cell": "epithelial"
-      "ovary+epithelial cell": "epithelial"
-      "oviduct+epithelial cell": "epithelial"
-      "testis+epithelial cell": "epithelial"
+      "kidney:epithelial cell": "epithelial"
+      "lung:epithelial cell": "epithelial"
+      "ovary:epithelial cell": "epithelial"
+      "oviduct:epithelial cell": "epithelial"
+      "testis:epithelial cell": "epithelial"
       
 
   blacklist:
@@ -89,6 +89,7 @@ cell_annotations:
       'myeloid cell',
       'leukocyte',
       'taste cell',
+      'umbrella cell',
     ]
     gut: ["myeloid cell"] 
     heart: ["myeloid cell", "leukocyte"]

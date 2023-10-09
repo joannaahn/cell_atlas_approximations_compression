@@ -264,14 +264,13 @@ def correct_annotations(
     # Rename according to standard dict
     if 'cell_types' in rename_dict:
         for ctraw, celltype in rename_dict['cell_types'].items():
-            # C. elegans has a cell type called flp-1(+) neurons
-            # There are also things like "gene+ neuron"
-            if isinstance(ctraw, str) and ('+' not in ctraw or '(+)' in ctraw or '+ ' in ctraw):
+            # one can use brain:neuron for renaming in specific tissues only
+            if isinstance(ctraw, str) and (':' not in ctraw):
                 celltypes_new[celltypes_new == ctraw] = celltype
             else:
                 # Organ-specific renames
-                if isinstance(ctraw, str) and '+' in ctraw:
-                    organraw, ctraw = ctraw.split('+')
+                if isinstance(ctraw, str) and ':' in ctraw:
+                    organraw, ctraw = ctraw.split(':')
                 else:
                     organraw, ctraw = ctraw
                 if organraw == tissue:
