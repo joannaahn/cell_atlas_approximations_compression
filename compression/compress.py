@@ -36,12 +36,12 @@ from utils import (
 if __name__ == '__main__':
 
     species_list = [
-        # Multi-organ species
-        'x_laevis',
-        'h_sapiens',
-        'm_musculus',
-        'm_murinus',
-        'd_melanogaster',
+            ## Multi-organ species
+            #'x_laevis',
+            #'h_sapiens',
+            #'m_musculus',
+            #'m_murinus',
+            #'d_melanogaster',
 
         # Single-organ species
         'l_minuta',
@@ -68,9 +68,10 @@ if __name__ == '__main__':
         atlas_data_folder = root_repo_folder / 'data' / 'full_atlases' / 'RNA' / species
         fn_out = output_folder / f'{species}.h5'
 
-        # Remove existing compressed atlas file if present
-        if os.path.isfile(fn_out):
-            os.remove(fn_out)
+        # FIXME
+        ## Remove existing compressed atlas file if present
+        #if os.path.isfile(fn_out):
+        #    os.remove(fn_out)
 
         # Iterate over gene expression, chromatin accessibility, etc.
         for measurement_type in config["measurement_types"]:
@@ -209,6 +210,8 @@ if __name__ == '__main__':
 
             print('Garbage collection before storing compressed atlas')
             gc.collect()
+
+            sys.exit()
 
             print('Store compressed atlas')
             store_compressed_atlas(
