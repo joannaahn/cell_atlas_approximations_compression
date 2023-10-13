@@ -1,0 +1,110 @@
+measurement_types: ["gene_expression"]
+
+gene_expression:
+  path: "s_mediterranea_with_cell_and_transcript_annotations.h5ad"
+  normalisation: raw
+  tissues: ["whole"]
+  cell_annotations:
+    column: "final_Id"
+    rename_dict:
+      cell_types:
+        'neoblast 1': 'pluripotent'
+        'neoblast 4': 'pluripotent'
+        'neoblast 6': 'pluripotent'
+        'neoblast 9': 'pluripotent'
+        'neoblast 5': 'pluripotent'
+        'neoblast 8': 'neural progenitor'
+        'neoblast 13': 'pluripotent'
+        'neoblast 12': 'neural progenitor'
+        'neural progenitors': 'neural progenitor'
+        'muscle progenitors': 'muscle progenitor'
+        'pharynx cell type': 'pharyngeal'
+        'pharynx cell type progenitors': 'pharyngeal progenitor'
+        'epidermis': 'epidermal'
+        'late epidermal progenitors 1': 'epidermal'
+        'late epidermal progenitors 2': 'epidermal'
+        'muscle body': 'striated muscle'
+        'muscle pharynx': 'striated muscle'
+        'chat neurons 1': 'neuron'
+        'chat neurons 2': 'photoreceptor'
+        'gaba neurons': 'neuron'
+        'cav-1+ neurons': 'neuron'
+        'npp-18+ neurons': 'neuron'
+        'spp-11+ neurons': 'neuron'
+        'phagocytes': 'phagocyte'
+        'glia': 'glial'
+        'protonephridia': 'flame'
+        'goblet cells': 'goblet'
+        'early epidermal progenitors': 'epidermal progenitor'
+        'late epidermal progenitors': 'epidermal progenitor'
+        'epidermal neoblasts': 'epidermal progenitor'
+        'parenchymal progenitors': 'parenchymal progenitor'
+        'aqp+ parenchymal cells': 'aqp+ parenchymal'
+        'otf+ cells 1': 'otf+ 1'
+        'otf+ cells 2': 'otf+ 2'
+        'ldlrr-1+ parenchymal cells': 'parenchymal progenitor'
+        'pgrn+ parenchymal cells': 'parenchymal progenitor'
+        'psap+ parenchymal cells': 'psap+ parenchymal'
+        'gut progenitors': 'phagocyte progenitor'
+        'psd+ cells': 'psd+ support'
+        'secretory 1': 'secretory'
+        'secretory 2': 'secretory'
+        'secretory 3': 'secretory'
+        'secretory 4': 'secretory'
+    blacklist:
+      whole: [
+        'neoblast 2',
+        'neoblast 3',
+        'neoblast 7',
+        'neoblast 10',
+        'neoblast 11',
+        'activated early epidermal progenitors',
+        'epidermis dvb',
+        'epidermis dvb neoblast',
+      ]
+      
+cell_annotations:
+  cell_supertypes:
+    'immune': [
+        'phagocyte',
+        'phagocyte progenitor',
+        'glial',
+    ]
+
+    'epithelial': [
+      'epidermal',
+      'epidermal progenitor',
+      'pharyngeal',
+      'pharyngeal progenitor',
+      'flame',
+      'goblet',
+    ]
+
+    'mesenchymal': [
+        #'digestive',
+        'muscle progenitor',
+        'striated muscle',
+        #'smooth muscle',
+        'pigment',
+        'parenchymal progenitor',
+        'aqp+ parenchymal',
+        'psap+ parenchymal',
+    ]
+
+    'other': [
+        'neuron',
+        'neural progenitor',
+        'photoreceptor',
+        'pluripotent',
+        'otf+ 1',
+        'otf+ 2',
+        'psd+ support',
+        'secretory',
+    ]
+
+  supertype_order: [
+    'immune',
+    'epithelial',
+    'mesenchymal',
+    'other',
+  ]

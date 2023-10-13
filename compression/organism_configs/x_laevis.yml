@@ -1,0 +1,245 @@
+measurement_types: [
+  "gene_expression",
+]
+
+gene_expression:
+  path_global: "Xenopus_Figure1.h5ad"
+
+  normalisation: 'to-raw+cptt+log'
+
+  filter_cells_global:
+    metadata: ['tissue', 'notin', ["St48", "St66", "St54", "St59"]]
+
+  cell_annotations:
+    column: "anno"
+
+cell_annotations:
+  rename_dict:
+    tissues:
+      'Bladder': 'bladder'
+      "Bone Marrow": "marrow"
+      'Brain': 'brain'
+      'Eye': 'eye'
+      'Heart': 'heart'
+      'Kidney': 'kidney'
+      "Intestine": "gut"
+      'Liver': 'liver'
+      'Lung': 'lung'
+      'Muscle': 'muscle'
+      'Ovary': 'ovary'
+      'Oviduct': 'oviduct'
+      'Pancreas': 'pancreas'
+      'Skin': 'skin'
+      'Spleen': 'spleen'
+      'Stomach': 'stomach'
+      'Testis': 'testis'
+
+    cell_types:
+      "b cell": "B"
+      "t cell": "T"
+      "stromal cell": "stromal"
+      "smooth muscle cell": "smooth muscle"
+      "mast cell": "mast"
+      "acinar cell": "acinar"
+      "beta cell": "beta"
+      "delta cell": "delta"
+      "neuroendocrine cell": "neuroendocrine"
+      "gabaergic neuron": "neuron"
+      "endothelial cell": "capillary"
+      "rod photoreceptor": "rod"
+      "at2 cell": "AT2 epi"
+      "cumulus cell": "cumulus"
+      "stomach pit cell": "pit"
+      "stomach parietal cell": "parietal"
+      "secretory cell": "chief"
+      "liver sinusoidal endothelial cell": "capillary"
+      "secretory cell": "secretory"
+      "proximal tubule cell": "proximal tubule epi"
+      "collecting duct intercalated cell": "intercalated"
+      "goblet cell": "goblet"
+      "lens fiber cell": "corneal"
+      "epidermal stem cell": "epidermal"
+      "bladder:epithelial cell": "epithelial"
+      "brain:epithelial cell": "epithelial"
+      "gut:epithelial cell": "epithelial"
+      "ovary:cumulus cell": "cumulus"
+      "pancreas:epithelial cell": "ductal"
+      "skin:epithelial cell": "epidermal"
+      "stomach:epithelial cell": "mucous"
+      "eye:epithelial cell": "epithelial"
+      'umbrella cell': "umbrella"
+      "kidney:epithelial cell": "epithelial"
+      "lung:epithelial cell": "epithelial"
+      "ovary:epithelial cell": "epithelial"
+      "oviduct:epithelial cell": "epithelial"
+      "testis:epithelial cell": "epithelial"
+      
+
+  blacklist:
+    bladder: [
+      'myeloid cell',
+      'leukocyte',
+    ]
+    brain: [
+      'leukocyte',
+      'myeloid cell',
+      'testis unknown cell',
+    ]
+    eye: [
+      'myeloid cell',
+      'leukocyte',
+      'taste cell',
+      'umbrella cell',
+    ]
+    gut: ["myeloid cell"] 
+    heart: ["myeloid cell", "leukocyte"]
+    kidney: [
+      'leukocyte',
+      'myeloid cell',
+      'testis unknown cell',
+    ]
+    liver: [
+      'leukocyte',
+      'myeloid cell',
+      'testis unknown cell',
+    ]
+    lung: [
+      'leukocyte',
+      'myeloid cell',
+    ]
+    marrow: [
+      'leukocyte',
+      'myeloid cell',
+    ]
+    muscle: [
+      'leukocyte',
+      'myeloid cell',
+      'cumulus',
+      'AT2 epi',
+      'cardiomyocyte',
+      'oligodendrocyte',
+      'radial glia',
+    ]
+    ovary: [
+      'leukocyte',
+      'myeloid cell',
+      'testis unknown cell',
+    ]
+    oviduct: [
+      'leukocyte',
+    ]
+    pancreas: [
+      'leukocyte',
+      'myeloid cell',
+      'enterocyte',
+      'radial glia',
+      'melanocyte',
+      'at2 cell',
+      'goblet',
+      'oligodendrocyte',
+      'chondrocyte',
+    ]
+    skin: [
+      'leukocyte',
+      'myeloid cell',
+      'enterocyte',
+      'radial glia',
+      'at2 cell',
+      'goblet',
+      'oligodendrocyte',
+      'chondrocyte',
+    ]
+    spleen: [
+      'leukocyte',
+      'myeloid cell',
+      'enterocyte',
+      'radial glia',
+      'at2 cell',
+      'goblet',
+      'oligodendrocyte',
+      'chondrocyte',
+    ]
+    stomach: [
+      'leukocyte',
+      'myeloid cell',
+      'epidermal',
+      'neuron',
+      'cardiomyocyte',
+      "lens fiber cell",
+      "melanocyte",
+      'delta',
+      'beta',
+      'radial glia',
+      'acinar cell',
+    ]
+
+    testis: [
+      'testis unknown cell',
+      "proximal tubule cell",
+      'cardiomyocyte',
+      "collecting duct intercalated cell",
+      'at2 cell',
+      'chondrocyte',
+      'acinar cell',
+    ]
+
+
+  cell_supertypes:
+    immune: [
+      "neutrophil",
+      "mast",
+      "eosinophil",
+      "macrophage",
+      "erythrocyte",
+      "B",
+      "T",
+      "radial glia",
+    ]
+
+    epithelial: [
+      'epithelial',
+      'goblet',
+      'enterocyte',
+      "proximal tubule epi",
+      'intercalated',
+      "AT2 epi",
+      "ductal",
+      "acinar",
+      "melanocyte",
+      "pit",
+      "parietal",
+      "chief",
+      "mucous",
+      "secretory",
+      "corneal",
+      "epidermal",
+    ]
+
+    endothelial: [
+      "capillary",
+    ]
+
+    mesenchymal: [
+      "fibroblast",
+      "chondrocyte",
+      "cardiomyocyte",
+      "smooth muscle",
+      "stromal",
+    ]
+
+    other: [
+      "neuron",
+      "astrocyte",
+      "oligodendrocyte",
+      "rod",
+      "neuroendocrine",
+      "beta",
+      "delta",
+      "hepatocyte",
+      "spermatogonia",
+      "spermatocyte",
+      "spermatid",
+      "cumulus",
+    ]
+
+  supertype_order: ["immune", "epithelial", "endothelial", "mesenchymal", "other"]
