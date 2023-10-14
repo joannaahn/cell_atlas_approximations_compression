@@ -1,0 +1,173 @@
+measurement_types: ["gene_expression", "chromatin_accessibility"]
+
+gene_expression:
+  path: "GSE155178_maize_scATAC_atlas_ACR_celltype_CPM.txt.gz"
+
+chromatin_accessibility:
+  path_global: ""
+  path_metadata_global: ''
+  load_params:
+    backed: "r"
+
+filter_cells_global:
+  metadata: ["Life stage", "==", "Adult"]
+
+filter_cells:
+  min_cells_per_type: 10
+
+  normalisation: 
+
+  tissues: 
+
+  cell_annotations:
+    column: "cell_type"
+
+cell_annotations:
+  rename_dict:
+  # Might not need renaming of the tissues.
+    tissues:
+      'crownRoot' :
+      'root' :
+      'axillaryBud' :
+      'leaf' : 
+      'tassel' :
+      'ear' :
+      'seedling' :
+
+   # Need to figure out what to simplify.  
+    cell_types:
+      'unknown' :
+      'axillary_meristem' :
+      'parenchyma' :	
+      'axillary_L1_layer' :
+      'ground_meristem' :
+      'axillary_provascular_strands' :
+      'axillary_meristem_L1_layer' :	
+      'pith_parenchyma' :
+      'endodermis' :	
+      'procambial' :
+      'LRC' :	
+      'exodermis' :	
+      'xylem_parenchyma' :	
+      'atrichoblast' :	
+      'cortex' :		
+      'QC' :	
+      'vascular_parenchyma' :	
+      'procambial_phloem_SE_precursors' :
+      'phloem_sieve_element_precursors' :
+      'cortex_endodermis_initials' :	
+      'trichoblast' :	
+      'proximal_meristem' :	
+      'columella/epidermal_initials' :	
+      'companion_cell' :	
+      'phloem_sieve_element' :	
+      'vascular_sclerenchyma' :
+      'xylem' :
+      'suppressed_bract_primordia' :
+      'glume_primordia' :
+      'spikelet_meristem' :	
+      'floral_meristem' :	
+      'spikelet_pair_meristem' :	
+      'epidermal' :
+      'floral_primordia' :
+      'provascular_inflorescence_strands' :
+      'inflorescence_meristem' :
+      'bundle_sheath' :	
+      'mesophyll' :	
+      'bulliform' :	
+      'L1_SAM' :
+      'leaf_provascular' :
+      'subsidiary' :	
+      'guard_mother_cell' :	
+      'protoderm' :	
+      'vascular_epidermal_meristem_identity' :
+      'guard_cell' :	
+      'stomatal_precursor' :		
+      'L1_leaf_primordia' :
+      'mixed' :		
+      'lateral_root_epidermis' :		
+      'pericycle' :	
+      'epidermal_initials' :
+      'protophloem' :
+      'xylem_precursors' :	
+      'spikelet_meristem_spikelet_pair_meristem' :
+      'lower_floral_meristem' :
+
+    blacklist:
+      whole: [
+        "not_clustered",
+      ]
+# Reorganize cells in cell_supertypes - based on the renamed cell_types.
+# Check with Fabio if we can create another category for meristems. 
+cell_annotations:
+  cell_supertypes:
+    'epithelial': [
+      epidermal,
+      atrichoblast,
+      trichoblast,
+      epidermal_initials,
+      lateral_root_epidermis,
+      bundle_sheath,
+      guard_cell,
+      stomatal_precursor,
+      guard_mother_cell,
+    ]
+
+    'mesenchymal': [
+      mesophyll,
+      bulliform,
+      vascular_sclerenchyma,
+      pericycle,
+    ]
+    
+    'other': [
+      unknown,
+      axillary_meristem,
+      parenchyma,
+      axillary_L1_layer,
+      ground_meristem,
+      axillary_provascular_strands,
+      axillary_meristem_L1_layer,
+      pith_parenchyma,
+      endodermis,
+      procambial,
+      LRC,
+      exodermis,
+      xylem_parenchyma,
+      cortex,
+      QC,
+      vascular_parenchyma,
+      procambial_phloem_SE_precursors,
+      phloem_sieve_element_precursors,
+      cortex_endodermis_initials,
+      proximal_meristem,
+      columella/epidermal_initials,
+      companion_cell,
+      phloem_sieve_element,
+      xylem,
+      suppressed_bract_primordia,
+      glume_primordia,
+      spikelet_meristem,
+      floral_meristem,
+      spikelet_pair_meristem,
+      floral_primordia,
+      provascular_inflorescence_strands,
+      inflorescence_meristem,
+      L1_SAM,
+      leaf_provascular,
+      subsidiary,
+      protoderm,
+      vascular_epidermal_meristem_identity,
+      L1_leaf_primordia,
+      mixed,
+      protophloem,
+      xylem_precursors,
+      spikelet_meristem_spikelet_pair_meristem,
+      lower_floral_meristem,
+    ]
+
+  supertype_order: [
+    'epithelial',
+    'mesenchymal',
+    'other',
+  ]
