@@ -139,6 +139,7 @@ def store_compressed_atlas(
                 ncells = neid['ncells']
                 neigroup.create_dataset(
                     'cell_count', data=ncells.values, dtype='i8')
+
                 avg = neid['avg']
                 if quantisation:
                     # pd.cut wants one dimensional arrays so we ravel -> cut -> reshape
@@ -164,8 +165,24 @@ def store_compressed_atlas(
                         **comp_kwargs,
                     )
 
-                # TODO: centroid coordinates and convex hulls
+                # Centroid coordinates
+                coords_centroids = neid['coords_centroid']
+                neigroup.create_dataset(
+                    'coords_centroid',
+                    data=coords_centroids.T.values, dtype=avg_dtype,
+                    **add_kwargs,
+                    **comp_kwargs,
+                )
 
+                # Convex hulls
+                convex_hulls = neid['convex_hull']
+                hullgroup = neigroup.create_group('convex_hull')
+                for ih, hull in enumerate(convex_hulls):
+                    hullgroup.create_dataset(
+                        str(ih), data=hull, dtype='f4',
+                        **add_kwargs,
+                        **comp_kwargs,
+                    )
 
         ct_group = me.create_group('celltypes')
         supertypes = np.array([x[0] for x in celltype_order])
@@ -184,7 +201,6 @@ def compress_tissue(
     adata_tissue,
     celltype_order,
     measurement_type="gene_expression",
-    max_neighborhoods=5,
 ):
     """Compress atlas for one tissue after data is clean, normalised, and reannotated."""
     celltypes = _get_celltype_order(
@@ -223,7 +239,6 @@ def compress_tissue(
     neid = _compress_neighborhoods(
         ncells,
         adata_tissue,
-        max_neighborhoods=max_neighborhoods,
         measurement_type=measurement_type,
     )
 
@@ -246,9 +261,9 @@ def compress_tissue(
 def _compress_neighborhoods(
     ncells,
     adata,
-    max_neighborhoods=5,
     max_cells_per_type=300,
     measurement_type='gene_expression',
+    avg_neighborhoods=3,
 ):
     """Compress local neighborhood of a single cell type."""
     # Try something easy first, like k-means
@@ -258,32 +273,20 @@ def _compress_neighborhoods(
     features = adata.var_names
 
     celltypes = list(ncells.keys())
-    nei_columns = []
-    nei_ncells = pd.Series(
-            np.zeros(len(celltypes) * max_neighborhoods, np.int64),
-            )
     nei_avg = pd.DataFrame(
-            np.zeros((len(features), len(celltypes) * max_neighborhoods), np.float32),
+            np.zeros((len(features), len(celltypes) * avg_neighborhoods), np.float32),
             index=features,
             )
     nei_coords = pd.DataFrame(
-            np.zeros((2, len(celltypes) * max_neighborhoods), np.float32),
+            np.zeros((2, len(celltypes) * avg_neighborhoods), np.float32),
             index=['x', 'y'],
             )
     convex_hulls = []
     if measurement_type == "gene_expression":
         nei_frac = pd.DataFrame(
-                np.zeros((len(features), len(celltypes) * max_neighborhoods), np.float32),
+                np.zeros((len(features), len(celltypes) * avg_neighborhoods), np.float32),
                 index=features,
                 )
-
-    # Tune neighborhood number for rare cell types
-    # NOTE: the following lines need to be in order, obviously
-    n_neighborhoods = ncells.copy()
-    n_neighborhoods[:] = max_neighborhoods
-    #n_neighborhoods[ncells < 150] = 5
-    n_neighborhoods[ncells < 75] = 4
-    n_neighborhoods[ncells < 25] = 3
 
     # Subsample with some regard for cell typing
     cell_ids = []
@@ -295,83 +298,92 @@ def _compress_neighborhoods(
         cell_ids.extend(list(cell_ids_ct))
     adata = adata[cell_ids].copy()
 
-    # Log
-    sc.pp.log1p(adata)
+    ##############################################
+    # USE AN EXISTING EMBEDDING OR MAKE A NEW ONE
+    emb_keys = ['umap', 'tsne']
+    for emb_key in emb_keys:
+        if f'X_{emb_key}' in adata.obsm:
+            break
+    else:
+        emb_key = 'umap'
 
-    # Select features
-    sc.pp.highly_variable_genes(adata)
-    adata.raw = adata
-    adata = adata[:, adata.var.highly_variable]
+        # Log
+        sc.pp.log1p(adata)
 
-    # Create embedding, a proxy for cell states broadly
-    sc.tl.pca(adata)
-    sc.pp.neighbors(adata)
-    sc.tl.umap(adata)
-    points = adata.obsm['X_umap']
+        # Select features
+        sc.pp.highly_variable_genes(adata)
+        adata.raw = adata
+        adata = adata[:, adata.var.highly_variable]
 
-    # Back to all features for storage
-    adata = adata.raw.to_adata()
-    adata.obsm['X_umap'] = points
+        # Create embedding, a proxy for cell states broadly
+        sc.tl.pca(adata)
+        sc.pp.neighbors(adata)
+        sc.tl.umap(adata)
+        points = adata.obsm[f'X_{emb_key}']
 
-    # Back to cptt or equivalent for storage
-    adata.X.data = np.expm1(adata.X.data)
+        # Back to all features for storage
+        adata = adata.raw.to_adata()
+        adata.obsm[f'X_{emb_key}'] = points
 
-    for celltype, n_nei in n_neighborhoods.items():
-        adata_ct = adata[adata.obs['cellType'] == celltype]
-        points_ct = adata_ct.obsm['X_umap']
+        # Back to cptt or equivalent for storage
+        adata.X.data = np.expm1(adata.X.data)
+    ##############################################
 
-        # Assign cells to mutually exclusive states (for now)
-        # NOTE: reduce the K until all clusters have at least 3 cells
-        for n_neii in range(n_nei, 0, -1):
-            kmeans = KMeans(
-                n_clusters=n_neii,
-                random_state=0,
-                n_init='auto',
-            ).fit(points_ct) 
+    points = adata.obsm[f'X_{emb_key}']
 
-            ncells_ct = pd.Series(kmeans.labels_).value_counts()
-            if ncells_ct.min() >= 3:
-                break
-        else:
-            raise ValueError(f"Celltype with < 3 cells total: {celltype}")
+    # Do a global clustering, ensuring at least 3 cells
+    # for each cluster so you can make convex hulls
+    for n_clusters in range(avg_neighborhoods * len(celltypes), 1, -1):
+        kmeans = KMeans(
+            n_clusters=n_clusters,
+            random_state=0,
+            n_init='auto',
+        ).fit(points) 
+        labels = kmeans.labels_
 
-        for i in range(kmeans.n_clusters):
-            idx = kmeans.labels_ == i
-            # Add the number of cells
-            nei_ncells.iloc[len(nei_columns) + i] = idx.sum()
+        # Book keep how many cells of each time are in each cluster
+        tmp = adata.obs[['cellType']].copy()
+        tmp['kmeans'] = labels
+        tmp['c'] = 1.0
+        ncells_per_label = tmp.groupby(['kmeans', 'cellType']).size().unstack(fill_value=0)
+        del tmp
 
-            # Add the average expression
-            nei_avg.iloc[:, len(nei_columns) + i] = np.asarray(adata_ct.X[idx].mean(axis=0))[0]
-            # Add the fraction expressing
-            if measurement_type == "gene_expression":
-                nei_frac.iloc[:, len(nei_columns) + i] = np.asarray((adata_ct.X[idx] > 0).mean(axis=0))[0]
+        if ncells_per_label.sum(axis=1).min() >= 3:
+            break
+    else:
+        raise ValueError("Cannot cluster neighborhoods")
 
-            # Add the coordinates of the center
-            points_i = points_ct[idx]
-            nei_coords.iloc[:, len(nei_columns) + i] = points_i.mean(axis=0)
+    for i in range(kmeans.n_clusters):
+        idx = kmeans.labels_ == i
 
-            # Add the convex hull
-            hull = ConvexHull(points_i)
-            convex_hulls.append(points_i[hull.vertices])
+        # Add the average expression
+        nei_avg.iloc[:, i] = np.asarray(adata.X[idx].mean(axis=0))[0]
+        # Add the fraction expressing
+        if measurement_type == "gene_expression":
+            nei_frac.iloc[:, i] = np.asarray((adata.X[idx] > 0).mean(axis=0))[0]
 
-        # Housekeeping
-        nei_columns.extend([celltype] * kmeans.n_clusters)
+        # Add the coordinates of the center
+        points_i = points[idx]
+        nei_coords.iloc[:, i] = points_i.mean(axis=0)
+
+        # Add the convex hull
+        hull = ConvexHull(points_i)
+        convex_hulls.append(points_i[hull.vertices])
 
     # Clean up
     del adata
     gc.collect()
 
-    nei_ncells = nei_ncells.iloc[:len(nei_columns)]
-    nei_avg = nei_avg.iloc[:, :len(nei_columns)]
-    nei_coords = nei_coords.iloc[:, :len(nei_columns)]
-    nei_avg.columns = nei_columns
-    nei_coords.columns = nei_columns
+    nei_avg = nei_avg.iloc[:, :len(ncells_per_label)]
+    nei_coords = nei_coords.iloc[:, :len(ncells_per_label)]
+    nei_avg.columns = ncells_per_label.index
+    nei_coords.columns = ncells_per_label.index
     if measurement_type == "gene_expression":
-        nei_frac = nei_frac.iloc[:, :len(nei_columns)]
-        nei_frac.columns = nei_columns
+        nei_frac = nei_frac.iloc[:, :len(ncells_per_label)]
+        nei_frac.columns = ncells_per_label.index
 
     neid = {
-        'ncells': nei_ncells,
+        'ncells': ncells_per_label,
         'avg': nei_avg,
         'coords_centroid': nei_coords,
         'convex_hull': convex_hulls,

@@ -42,19 +42,18 @@ if __name__ == '__main__':
             #'d_melanogaster',
 
         # Single-organ species
-        'h_miamia',
-        'l_minuta',
         'a_queenslandica',
         'c_elegans',
-        'i_pulchra',
-        'a_queenslandica',
         'd_rerio',
-        't_adhaerens',
-        's_mediterranea',
-        's_mansoni',
-        's_lacustris',
+        'h_miamia',
+        'i_pulchra',
+        'l_minuta',
         'm_leidyi',
         'n_vectensis',
+        's_mansoni',
+        's_mediterranea',
+        's_lacustris',
+        't_adhaerens',
     ]
 
     for species in species_list:
