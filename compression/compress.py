@@ -20,11 +20,9 @@ from utils import (
     load_config,
     root_repo_folder,
     output_folder,
-    subannotate,
     filter_cells,
     normalise_counts,
     correct_annotations,
-    get_celltype_order,
     compress_tissue,
     store_compressed_atlas,
     collect_feature_sequences,
@@ -44,19 +42,18 @@ if __name__ == '__main__':
             #'d_melanogaster',
 
         # Single-organ species
-        'l_minuta',
-        'h_miamia',
         'a_queenslandica',
         'c_elegans',
-        'i_pulchra',
-        'a_queenslandica',
         'd_rerio',
-        't_adhaerens',
-        's_mediterranea',
-        's_mansoni',
-        's_lacustris',
+        'h_miamia',
+        'i_pulchra',
+        'l_minuta',
         'm_leidyi',
         'n_vectensis',
+        's_mansoni',
+        's_mediterranea',
+        's_lacustris',
+        't_adhaerens',
     ]
 
     for species in species_list:
@@ -68,10 +65,9 @@ if __name__ == '__main__':
         atlas_data_folder = root_repo_folder / 'data' / 'full_atlases' / 'RNA' / species
         fn_out = output_folder / f'{species}.h5'
 
-        # FIXME
-        ## Remove existing compressed atlas file if present
-        #if os.path.isfile(fn_out):
-        #    os.remove(fn_out)
+        # Remove existing compressed atlas file if present
+        if os.path.isfile(fn_out):
+            os.remove(fn_out)
 
         # Iterate over gene expression, chromatin accessibility, etc.
         for measurement_type in config["measurement_types"]:
@@ -210,8 +206,6 @@ if __name__ == '__main__':
 
             print('Garbage collection before storing compressed atlas')
             gc.collect()
-
-            sys.exit()
 
             print('Store compressed atlas')
             store_compressed_atlas(
